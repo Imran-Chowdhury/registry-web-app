@@ -1,0 +1,1354 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#F5F6F8;color:#101828;font-family:Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:#101828;text-decoration:underline;text-underline-offset:2px}
+a:hover{color:#B42318}
+button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
+input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid #101828;outline-offset:1px}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+</style>
+</helmet>
+<div style="min-height:100vh;background:#F5F6F8;font-size:14px;line-height:1.45">
+
+  <div style="height:44px;background:#101828;color:#FFFFFF;display:flex;align-items:center;gap:16px;padding:0 20px">
+    <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.14em">DEMO MODE</span>
+    <span style="font-size:13px;color:#98A2B3">Viewing as</span>
+    <select value="{{ viewer }}" onChange="{{ setViewer }}" style="background:#1D2939;color:#FFFFFF;border:1px solid #344054;border-radius:4px;padding:4px 8px;font-size:13px">
+      <option value="staff">Staff</option>
+      <option value="student">Student</option>
+    </select>
+    <sc-if value="{{ isStudent }}" hint-placeholder-val="{{ true }}">
+      <select value="{{ viewingStudent }}" onChange="{{ setViewingStudent }}" style="background:#1D2939;color:#FFFFFF;border:1px solid #344054;border-radius:4px;padding:4px 8px;font-size:13px;font-family:'IBM Plex Mono',monospace;max-width:360px">
+        <sc-for list="{{ studentGroups }}" as="g" hint-placeholder-count="2">
+          <optgroup label="{{ g.label }}">
+            <sc-for list="{{ g.items }}" as="o" hint-placeholder-count="4">
+              <option value="{{ o.code }}">{{ o.label }}</option>
+            </sc-for>
+          </optgroup>
+        </sc-for>
+      </select>
+    </sc-if>
+  </div>
+
+  <sc-if value="{{ isStaff }}" hint-placeholder-val="{{ true }}">
+    <div style="background:#FFFFFF;border-bottom:1px solid #E4E7EC">
+      <div style="max-width:1440px;margin:0 auto;padding:0 24px;display:flex;gap:28px">
+        <sc-for list="{{ staffNav }}" as="t" hint-placeholder-count="5">
+          <button onClick="{{ t.go }}" style="background:none;border:0;padding:14px 0 12px;cursor:pointer;font-size:14px;font-weight:500;border-bottom:{{ t.border }};color:{{ t.color }};transition:color 120ms">{{ t.label }}</button>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="max-width:1440px;margin:0 auto;padding:28px 24px 64px">
+
+      <sc-if value="{{ showDashboard }}" hint-placeholder-val="{{ true }}">
+        <h1 style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:28px;letter-spacing:-.02em;margin:0 0 20px">Registry</h1>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:32px">
+          <sc-for list="{{ tiles }}" as="k" hint-placeholder-count="4">
+            <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:6px;padding:16px 18px">
+              <div style="font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums;font-size:28px;font-weight:500;letter-spacing:-.01em;color:{{ k.color }}">{{ k.value }}</div>
+              <div style="font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#667085;margin-top:6px">{{ k.label }}</div>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px">
+          <h2 style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:16px;margin:0">Overdue accounts</h2>
+          <a href="#" onClick="{{ goStudentsOverdue }}" style="font-size:13px">View all →</a>
+        </div>
+        <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:6px;overflow:hidden;margin-bottom:28px">
+          <sc-if value="{{ hasOverdue }}" hint-placeholder-val="{{ true }}">
+            <sc-for list="{{ overdueList }}" as="r" hint-placeholder-count="3">
+              <div onClick="{{ r.open }}" style-hover="background:#F9FAFB" style="display:grid;grid-template-columns:150px 1fr 70px 110px 130px;align-items:center;gap:12px;padding:10px 16px;border-top:{{ r.divider }};cursor:pointer;transition:background 120ms">
+                <span style="font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums;font-size:13px">{{ r.code }}</span>
+                <span style="font-weight:500">{{ r.name }}</span>
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#667085">{{ r.progCode }}</span>
+                <span style="font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums;font-size:13px;text-align:right;color:#B42318">{{ r.balance }}</span>
+                <span style="font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums;font-size:13px;text-align:right;color:#B42318">{{ r.daysLabel }}</span>
+              </div>
+            </sc-for>
+          </sc-if>
+          <sc-if value="{{ noOverdue }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:14px 16px;color:#667085">No overdue accounts. Next payment due 20 March 2026.</div>
+          </sc-if>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div>
+            <h2 style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:16px;margin:0 0 8px">Late submissions</h2>
+            <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:6px;padding:16px">
+              <div style="font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums;font-size:20px;color:#B42318">{{ lateCount }}</div>
+              <div style="color:#667085;margin-top:4px">submissions flagged late across {{ lateAssessments }} assessments</div>
+              <div style="margin-top:12px"><a href="#" onClick="{{ goLate }}" style="font-size:13px">Review late work →</a></div>
+            </div>
+          </div>
+          <div>
+            <h2 style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:16px;margin:0 0 8px">Ready to publish</h2>
+            <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:6px;padding:16px">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+                <div>
+                  <div style="font-weight:500">{{ readyTitle }}</div>
+                  <div style="color:#667085;font-family:'IBM Plex Mono',monospace;font-size:13px;font-variant-numeric:tabular-nums;margin-top:4px">{{ readyRatio }} marked · {{ readyPending }} unpublished</div>
+                </div>
+                <button onClick="{{ goReady }}" style="background:#101828;color:#FFFFFF;border:1px solid #101828;border-radius:4px;padding:8px 14px;font-weight:500;cursor:pointer;transition:background 120ms" style-hover="background:#1D2939">Review →</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ showStudents }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+          <h1 style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:28px;letter-spacing:-.02em;margin:0">Students</h1>
+          <button onClick="{{ newStudent }}" style="background:#101828;color:#FFFFFF;border:1px solid #101828;border-radius:4px;padding:9px 14px;font-weight:500;cursor:pointer;transition:background 120ms;flex:none;white-space:nowrap" style-hover="background:#1D2939">+ Add student</button>
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:12px">
+          <input value="{{ search }}" onChange="{{ setSearch }}" placeholder="Search name, code, or email" style="flex:1;max-width:420px;padding:9px 12px;border:1px solid #E4E7EC;border-radius:4px;background:#FFFFFF" />
+          <select value="{{ progFilter }}" onChange="{{ setProgFilter }}" style="padding:9px 10px;border:1px solid #E4E7EC;border-radius:4px;background:#FFFFFF">
+            <option value="All">All programmes</option>
+            <sc-for list="{{ programmes }}" as="p" hint-placeholder-count="3">
+              <option value="{{ p.code }}">{{ p.name }}</option>
+            </sc-for>
+          </select>
+          <select value="{{ statusFilter }}" onChange="{{ setStatusFilter }}" style="padding:9px 10px;border:1px solid #E4E7EC;border-radius:4px;background:#FFFFFF">
+            <option value="All">All statuses</option>
+            <option value="Enrolled">Enrolled</option>
+            <option value="Deferred">Deferred</option>
+            <option value="Withdrawn">Withdrawn</option>
+            <option value="Completed">Completed</option>
+            <option value="Overdue">Overdue balance</option>
+          </select>
+        </div>
+        <sc-if value="{{ hasChips }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+            <sc-for list="{{ chips }}" as="c" hint-placeholder-count="1">
+              <button onClick="{{ c.clear }}" style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:999px;padding:4px 10px;font-size:12px;cursor:pointer;display:inline-flex;gap:6px;align-items:center">{{ c.label }} <span style="color:#667085">✕</span></button>
+            </sc-for>
+          </div>
+        </sc-if>
+        <div style="font-size:13px;color:#667085;margin-bottom:8px;font-variant-numeric:tabular-nums">{{ countLine }}</div>
+
+        <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:6px;overflow:hidden">
+          <div style="display:grid;grid-template-columns:152px 1fr 130px 56px 132px 110px;gap:12px;padding:9px 16px;background:#F5F6F8;border-bottom:1px solid #E4E7EC;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#667085;font-weight:500">
+            <span>Code</span><span>Name</span><span>Programme</span><span>Year</span><span>Status</span><span style="text-align:right">Balance</span>
+          </div>
+          <sc-for list="{{ filteredStudents }}" as="r" hint-placeholder-count="8">
+            <div onClick="{{ r.open }}" style-hover="background:#F9FAFB" style="display:grid;grid-template-columns:152px 1fr 130px 56px 132px 110px;gap:12px;padding:9px 16px 9px 14px;border-top:1px solid #E4E7EC;border-left:{{ r.borderLeft }};align-items:center;cursor:pointer;transition:background 120ms;opacity:{{ r.opacity }}">
+              <span style="font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums;font-size:13px">{{ r.code }}</span>
+              <span style="font-weight:500">{{ r.name }}</span>
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#667085">{{ r.progCode }}</span>
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:13px">{{ r.year }}</span>
+              <span><span style="display:inline-flex;align-items:center;gap:6px;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:500;background:{{ r.pillBg }};border:1px solid {{ r.pillBorder }};color:{{ r.pillFg }}"><span style="width:6px;height:6px;border-radius:999px;background:{{ r.pillFg }}"></span>{{ r.status }}</span></span>
+              <span style="text-align:right">
+                <span style="font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums;font-size:13px;color:{{ r.balanceColor }}">{{ r.balance }}</span>
+                <sc-if value="{{ r.overdue }}" hint-placeholder-val="{{ false }}">
+                  <span style="display:block;font-family:'IBM Plex Mono',monospace;font-size:12px;color:#B42318;margin-top:2px">⚠ {{ r.daysLabel }}</span>
+                </sc-if>
+              </span>
+            </div>
+          </sc-for>
+          <sc-if value="{{ noStudentResults }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:22px 16px;border-top:1px solid #E4E7EC">
+              <div style="margin-bottom:10px">{{ emptySearchLine }}</div>
+              <button onClick="{{ clearFilters }}" style="background:#FFFFFF;border:1px solid #101828;border-radius:4px;padding:7px 12px;font-weight:500;cursor:pointer;flex:none;white-space:nowrap">Clear filters</button>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ showForm }}" hint-placeholder-val="{{ false }}">
+        <a href="#" onClick="{{ back }}" style="font-size:13px">← Students</a>
+        <h1 style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:28px;letter-spacing:-.02em;margin:12px 0 20px">{{ formTitle }}</h1>
+        <div style="max-width:560px;display:flex;flex-direction:column;gap:16px">
+          <label style="display:block">
+            <span style="display:block;font-size:13px;font-weight:500;margin-bottom:5px">Full name</span>
+            <input value="{{ formName }}" onChange="{{ setFormName }}" style="width:100%;padding:9px 12px;border:1px solid #E4E7EC;border-radius:4px;background:#FFFFFF" />
+          </label>
+          <label style="display:block">
+            <span style="display:block;font-size:13px;font-weight:500;margin-bottom:5px">Email</span>
+            <input value="{{ formEmail }}" onChange="{{ setFormEmail }}" style="width:100%;padding:9px 12px;border:1px solid #E4E7EC;border-radius:4px;background:#FFFFFF;border-color:{{ emailBorder }}" />
+            <sc-if value="{{ emailError }}" hint-placeholder-val="{{ false }}">
+              <span style="display:block;font-size:12px;color:#B42318;margin-top:5px">Enter a full email address, e.g. name@example.edu</span>
+            </sc-if>
+          </label>
+          <label style="display:block">
+            <span style="display:block;font-size:13px;font-weight:500;margin-bottom:5px">Date of birth</span>
+            <input value="{{ formDob }}" onChange="{{ setFormDob }}" placeholder="DD/MM/YYYY" style="width:100%;padding:9px 12px;border:1px solid #E4E7EC;border-radius:4px;background:#FFFFFF;font-family:'IBM Plex Mono',monospace" />
+          </label>
+          <label style="display:block">
+            <span style="display:block;font-size:13px;font-weight:500;margin-bottom:5px">Programme</span>
+            <select value="{{ formProgramme }}" onChange="{{ setFormProgramme }}" style="width:100%;padding:9px 10px;border:1px solid #E4E7EC;border-radius:4px;background:#FFFFFF">
+              <option value="">Select a programme</option>
+              <sc-for list="{{ programmes }}" as="p" hint-placeholder-count="3">
+                <option value="{{ p.code }}">{{ p.longLabel }}</option>
+              </sc-for>
+            </select>
+          </label>
+          <sc-if value="{{ hasFormProgramme }}" hint-placeholder-val="{{ false }}">
+            <div style="border:1px solid #E4E7EC;border-radius:6px;background:#FFFFFF;padding:14px 16px">
+              <div style="font-weight:500">{{ progSummaryTitle }}</div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums;font-size:13px;margin-top:6px">{{ progSummaryFee }}</div>
+              <div style="color:#667085;font-size:13px;margin-top:6px">A fee record is created automatically on save.</div>
+            </div>
+          </sc-if>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <label style="display:block">
+              <span style="display:block;font-size:13px;font-weight:500;margin-bottom:5px">Academic year</span>
+              <select value="{{ formYear }}" onChange="{{ setFormYear }}" style="width:100%;padding:9px 10px;border:1px solid #E4E7EC;border-radius:4px;background:#FFFFFF">
+                <option value="1">Year 1</option><option value="2">Year 2</option><option value="3">Year 3</option>
+              </select>
+            </label>
+            <label style="display:block">
+              <span style="display:block;font-size:13px;font-weight:500;margin-bottom:5px">Enrolment status</span>
+              <select value="{{ formStatus }}" onChange="{{ setFormStatus }}" style="width:100%;padding:9px 10px;border:1px solid #E4E7EC;border-radius:4px;background:#FFFFFF">
+                <option value="Enrolled">Enrolled</option><option value="Deferred">Deferred</option><option value="Withdrawn">Withdrawn</option><option value="Completed">Completed</option>
+              </select>
+            </label>
+          </div>
+          <label style="display:block">
+            <span style="display:block;font-size:13px;font-weight:500;margin-bottom:5px;color:#667085">Student code</span>
+            <input value="{{ codePreview }}" disabled="{{ true }}" style="width:100%;padding:9px 12px;border:1px dashed #E4E7EC;border-radius:4px;background:#F5F6F8;color:#667085;font-family:'IBM Plex Mono',monospace" />
+          </label>
+          <sc-if value="{{ statusChanged }}" hint-placeholder-val="{{ false }}">
+            <div style="border:1px solid #E4E7EC;border-left:2px solid #B54708;border-radius:4px;background:#FFFFFF;padding:12px 14px">
+              <div style="font-weight:500;font-size:13px">Status change to {{ formStatus }}</div>
+              <div style="color:#667085;font-size:13px;margin-top:4px">This change will be recorded in the student's history.</div>
+              <input value="{{ statusReason }}" onChange="{{ setStatusReason }}" placeholder="Reason (optional)" style="width:100%;margin-top:10px;padding:8px 10px;border:1px solid #E4E7EC;border-radius:4px" />
+            </div>
+          </sc-if>
+          <div style="display:flex;gap:10px;padding-top:4px">
+            <button onClick="{{ saveStudent }}" style="background:#101828;color:#FFFFFF;border:1px solid #101828;border-radius:4px;padding:9px 16px;font-weight:500;cursor:pointer;flex:none;white-space:nowrap" style-hover="background:#1D2939">{{ saveLabel }}</button>
+            <button onClick="{{ back }}" style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:4px;padding:9px 16px;font-weight:500;cursor:pointer;flex:none;white-space:nowrap">Cancel</button>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ showDetail }}" hint-placeholder-val="{{ false }}">
+        <a href="#" onClick="{{ back }}" style="font-size:13px">← Students</a>
+        <div style="border:1px solid #101828;border-radius:6px;background:#FFFFFF;padding:20px 22px;margin:12px 0 22px;display:flex;justify-content:space-between;gap:24px">
+          <div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:20px;letter-spacing:.1em;font-variant-numeric:tabular-nums">{{ d.code }}</div>
+            <div style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:20px;letter-spacing:-.01em;margin-top:6px">{{ d.name }}</div>
+            <div style="color:#667085;font-size:13px;margin-top:10px">{{ d.line1 }}</div>
+            <div style="color:#667085;font-size:13px;margin-top:3px">{{ d.line2 }}</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+            <span style="display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:500;background:{{ d.pillBg }};border:1px solid {{ d.pillBorder }};color:{{ d.pillFg }}"><span style="width:6px;height:6px;border-radius:999px;background:{{ d.pillFg }}"></span>{{ d.status }}</span>
+            <span style="font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums;font-size:13px;color:{{ d.balanceColor }}">{{ d.balanceStamp }}</span>
+            <div style="display:flex;gap:8px;margin-top:auto">
+              <button onClick="{{ editStudent }}" style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:4px;padding:7px 13px;font-weight:500;cursor:pointer;flex:none;white-space:nowrap">Edit</button>
+              <button onClick="{{ openPay }}" style="background:#101828;color:#FFFFFF;border:1px solid #101828;border-radius:4px;padding:7px 13px;font-weight:500;cursor:pointer;flex:none;white-space:nowrap" style-hover="background:#1D2939">Record payment</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:22px;border-bottom:1px solid #E4E7EC;margin-bottom:20px">
+          <sc-for list="{{ detailTabs }}" as="t" hint-placeholder-count="4">
+            <button onClick="{{ t.go }}" style="background:none;border:0;padding:8px 0 10px;cursor:pointer;font-size:14px;font-weight:500;border-bottom:{{ t.border }};color:{{ t.color }}">{{ t.label }}</button>
+          </sc-for>
+        </div>
+
+        <sc-if value="{{ isFeesTab }}" hint-placeholder-val="{{ true }}">
+          <div style="max-width:760px">
+            <h2 style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:16px;margin:0 0 10px">Fee</h2>
+            <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:6px;padding:4px 16px 12px">
+              <div style="display:grid;grid-template-columns:1fr 110px 190px;gap:12px;padding:10px 0;border-bottom:1px solid #E4E7EC">
+                <span>{{ d.feeLabel }}</span>
+                <span style="font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums;text-align:right">{{ d.fee }}</span>
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#667085;text-align:right">due {{ d.dueDate }}</span>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 110px 190px;gap:12px;padding:10px 0;border-bottom:1px solid #E4E7EC">
+                <span>Paid</span>
+                <span style="font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums;text-align:right">{{ d.paid }}</span>
+                <span></span>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 110px 190px;gap:12px;padding:10px 0;font-weight:500">
+                <span>Outstanding</span>
+                <span style="font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums;text-align:right;color:{{ d.balanceColor }}">{{ d.balance }}</span>
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;text-align:right;color:{{ d.balanceColor }}">{{ d.overdueNote }}</span>
+              </div>
+            </div>
+
+            <h2 style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:16px;margin:24px 0 10px">Payments</h2>
+            <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:6px;overflow:hidden">
+              <sc-if value="{{ d.hasPayments }}" hint-placeholder-val="{{ true }}">
+                <div style="display:grid;grid-template-columns:130px 1fr 110px 110px;gap:12px;padding:9px 16px;background:#F5F6F8;border-bottom:1px solid #E4E7EC;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#667085;font-weight:500">
+                  <span>Date</span><span>Reference</span><span style="text-align:right">Amount</span><span style="text-align:right">Status</span>
+                </div>
+                <sc-for list="{{ d.payments }}" as="p" hint-placeholder-count="2">
+                  <div style="display:grid;grid-template-columns:130px 1fr 110px 110px;gap:12px;padding:10px 16px;border-top:1px solid #E4E7EC;align-items:center">
+                    <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-variant-numeric:tabular-nums">{{ p.date }}</span>
+                    <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;text-decoration:{{ p.strike }}">{{ p.ref }}</span>
+                    <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-variant-numeric:tabular-nums;text-align:right;text-decoration:{{ p.strike }}">{{ p.amount }}</span>
+                    <span style="text-align:right;font-size:12px;color:{{ p.color }};font-family:'IBM Plex Mono',monospace">{{ p.status }}</span>
+                  </div>
+                </sc-for>
+              </sc-if>
+              <sc-if value="{{ d.noPayments }}" hint-placeholder-val="{{ false }}">
+                <div style="padding:14px 16px;color:#667085">No payments recorded against this fee.</div>
+              </sc-if>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isSubsTab }}" hint-placeholder-val="{{ false }}">
+          <div style="max-width:900px;background:#FFFFFF;border:1px solid #E4E7EC;border-radius:6px;overflow:hidden">
+            <sc-for list="{{ d.submissions }}" as="s" hint-placeholder-count="3">
+              <div style="display:grid;grid-template-columns:1fr 190px 120px 110px;gap:12px;padding:12px 16px;border-top:1px solid #E4E7EC;align-items:center;border-left:{{ s.borderLeft }}">
+                <div>
+                  <div style="font-weight:500">{{ s.title }}</div>
+                  <div style="font-size:13px;color:#667085;margin-top:2px">{{ s.module }} · {{ s.attempt }}</div>
+                </div>
+                <div>
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-variant-numeric:tabular-nums">{{ s.submittedAt }}</div>
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:{{ s.lateColor }};margin-top:2px">{{ s.lateLabel }}</div>
+                </div>
+                <div><a href="#" onClick="{{ s.download }}" style="font-size:13px;font-family:'IBM Plex Mono',monospace">{{ s.file }}</a></div>
+                <div style="text-align:right;font-family:'IBM Plex Mono',monospace;font-size:13px;font-variant-numeric:tabular-nums">{{ s.gradeLabel }}</div>
+              </div>
+            </sc-for>
+            <sc-if value="{{ d.noSubmissions }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:14px 16px;color:#667085">No submissions from this student yet.</div>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isResultsTab }}" hint-placeholder-val="{{ false }}">
+          <div style="max-width:900px;background:#FFFFFF;border:1px solid #E4E7EC;border-radius:6px;overflow:hidden">
+            <sc-for list="{{ d.results }}" as="r" hint-placeholder-count="3">
+              <div style="display:grid;grid-template-columns:1fr 80px 130px 190px;gap:12px;padding:12px 16px;border-top:1px solid #E4E7EC;align-items:center">
+                <div>
+                  <div style="font-weight:500">{{ r.title }}</div>
+                  <div style="font-size:13px;color:#667085;margin-top:2px">{{ r.module }}</div>
+                </div>
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:16px;font-variant-numeric:tabular-nums;text-align:right">{{ r.grade }}</div>
+                <div style="font-size:13px;color:#667085">{{ r.classification }}</div>
+                <div style="display:flex;gap:8px;align-items:center;justify-content:flex-end">
+                  <span style="font-size:12px;font-weight:500;color:{{ r.stateColor }}">{{ r.state }}</span>
+                  <button onClick="{{ r.toggle }}" style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:4px;padding:5px 10px;font-size:13px;font-weight:500;cursor:pointer;flex:none;white-space:nowrap">{{ r.action }}</button>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isHistoryTab }}" hint-placeholder-val="{{ false }}">
+          <div style="max-width:680px">
+            <sc-for list="{{ d.history }}" as="h" hint-placeholder-count="3">
+              <div style="display:grid;grid-template-columns:130px 1fr;gap:16px;padding:10px 0;border-bottom:1px solid #E4E7EC">
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#667085;font-variant-numeric:tabular-nums">{{ h.date }}</span>
+                <span>{{ h.text }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+      </sc-if>
+
+      <sc-if value="{{ showAssessments }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+          <h1 style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:28px;letter-spacing:-.02em;margin:0">Assessments</h1>
+          <button onClick="{{ notImplemented }}" style="background:#101828;color:#FFFFFF;border:1px solid #101828;border-radius:4px;padding:9px 14px;font-weight:500;cursor:pointer;flex:none;white-space:nowrap" style-hover="background:#1D2939">+ New assessment</button>
+        </div>
+        <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:6px;overflow:hidden">
+          <div style="display:grid;grid-template-columns:1fr 110px 190px 110px 130px;gap:12px;padding:9px 16px;background:#F5F6F8;border-bottom:1px solid #E4E7EC;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#667085;font-weight:500">
+            <span>Title</span><span>Module</span><span>Deadline</span><span style="text-align:right">Submitted</span><span style="text-align:right">Marked</span>
+          </div>
+          <sc-for list="{{ assessmentRows }}" as="a" hint-placeholder-count="5">
+            <div onClick="{{ a.open }}" style-hover="background:#F9FAFB" style="display:grid;grid-template-columns:1fr 110px 190px 110px 130px;gap:12px;padding:11px 16px;border-top:1px solid #E4E7EC;align-items:center;cursor:pointer;transition:background 120ms">
+              <span style="font-weight:500">{{ a.title }}</span>
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:13px">{{ a.module }}</span>
+              <span>
+                <span style="display:block;font-family:'IBM Plex Mono',monospace;font-size:13px;font-variant-numeric:tabular-nums">{{ a.deadline }}</span>
+                <span style="display:block;font-size:12px;color:{{ a.relColor }};margin-top:2px">{{ a.relative }}</span>
+              </span>
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-variant-numeric:tabular-nums;text-align:right">{{ a.submitted }}</span>
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-variant-numeric:tabular-nums;text-align:right;color:{{ a.markedColor }}">{{ a.marked }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ showMarking }}" hint-placeholder-val="{{ false }}">
+        <a href="#" onClick="{{ back }}" style="font-size:13px">← Assessments</a>
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin:12px 0 6px">
+          <h1 style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:28px;letter-spacing:-.02em;margin:0">{{ m.title }}</h1>
+          <button onClick="{{ notImplemented }}" style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:4px;padding:8px 14px;font-weight:500;cursor:pointer;flex:none;white-space:nowrap">Edit</button>
+        </div>
+        <div style="color:#667085;font-size:13px">{{ m.subtitle }}</div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-variant-numeric:tabular-nums;margin:14px 0 18px">{{ m.stats }}</div>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px">
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <sc-for list="{{ m.filters }}" as="f" hint-placeholder-count="5">
+              <button onClick="{{ f.go }}" style="border-radius:999px;padding:5px 12px;font-size:13px;font-weight:500;cursor:pointer;background:{{ f.bg }};color:{{ f.fg }};border:1px solid {{ f.border }};transition:background 120ms">{{ f.label }}</button>
+            </sc-for>
+          </div>
+          <button onClick="{{ openPublishAll }}" style="background:#101828;color:#FFFFFF;border:1px solid #101828;border-radius:4px;padding:8px 14px;font-weight:500;cursor:pointer;flex:none;white-space:nowrap" style-hover="background:#1D2939">Publish all marked</button>
+        </div>
+
+        <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:6px;overflow:hidden">
+          <div style="display:grid;grid-template-columns:1fr 200px 100px 100px 200px;gap:12px;padding:9px 16px;background:#F5F6F8;border-bottom:1px solid #E4E7EC;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#667085;font-weight:500">
+            <span>Student</span><span>Submitted</span><span>File</span><span style="text-align:center">Grade</span><span style="text-align:right">Result</span>
+          </div>
+          <sc-for list="{{ m.rows }}" as="r" hint-placeholder-count="6">
+            <div style="display:grid;grid-template-columns:1fr 200px 100px 100px 200px;gap:12px;padding:11px 16px 11px 14px;border-top:1px solid #E4E7EC;align-items:start;border-left:{{ r.borderLeft }}">
+              <div>
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-variant-numeric:tabular-nums">{{ r.code }}</div>
+                <div style="font-weight:500;margin-top:2px">{{ r.name }}</div>
+                <sc-if value="{{ r.arrears }}" hint-placeholder-val="{{ false }}">
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#B42318;margin-top:4px">⚠ {{ r.arrearsLabel }}</div>
+                </sc-if>
+              </div>
+              <div>
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-variant-numeric:tabular-nums;color:{{ r.subColor }}">{{ r.submittedAt }}</div>
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#B42318;margin-top:2px">{{ r.lateLabel }}</div>
+                <div style="font-size:12px;color:#667085;margin-top:2px">{{ r.attempt }}</div>
+              </div>
+              <div><a href="#" onClick="{{ r.download }}" style="font-size:13px;font-family:'IBM Plex Mono',monospace">{{ r.file }}</a></div>
+              <div style="text-align:center">
+                <input value="{{ r.gradeValue }}" onChange="{{ r.setGrade }}" onBlur="{{ r.commitGrade }}" onKeyDown="{{ r.keyGrade }}" style="width:56px;text-align:center;padding:5px 6px;border:1px solid #E4E7EC;border-radius:4px;font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums;background:#FFFFFF" />
+                <div style="font-size:12px;color:#667085;margin-top:4px">{{ r.classification }}</div>
+              </div>
+              <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+                <div style="display:flex;align-items:center;gap:6px">
+                  <span style="font-size:12px;font-weight:500;color:{{ r.stateColor }}">{{ r.state }}</span>
+                  <sc-if value="{{ r.withheld }}" hint-placeholder-val="{{ false }}">
+                    <span title="{{ r.reason }}" style="font-size:12px;color:#B42318;cursor:help;border-bottom:1px dotted #B42318">ⓘ reason</span>
+                  </sc-if>
+                </div>
+                <sc-if value="{{ r.canPublish }}" hint-placeholder-val="{{ false }}">
+                  <button onClick="{{ r.publish }}" style="background:#FFFFFF;border:1px solid #101828;border-radius:4px;padding:4px 10px;font-size:12px;font-weight:500;cursor:pointer;flex:none;white-space:nowrap">Publish</button>
+                </sc-if>
+                <sc-if value="{{ r.canWithhold }}" hint-placeholder-val="{{ false }}">
+                  <button onClick="{{ r.withhold }}" style="background:none;border:0;padding:0;font-size:12px;color:#667085;text-decoration:underline;cursor:pointer">Withhold</button>
+                </sc-if>
+              </div>
+            </div>
+          </sc-for>
+          <sc-if value="{{ m.noRows }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:20px 16px;border-top:1px solid #E4E7EC;color:#667085">{{ m.emptyLine }}</div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ showProgrammes }}" hint-placeholder-val="{{ false }}">
+        <h1 style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:28px;letter-spacing:-.02em;margin:0 0 18px">Programmes</h1>
+        <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:6px;overflow:hidden;max-width:1080px">
+          <div style="display:grid;grid-template-columns:80px 1fr 100px 130px 90px 100px 110px;gap:12px;padding:9px 16px;background:#F5F6F8;border-bottom:1px solid #E4E7EC;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#667085;font-weight:500">
+            <span>Code</span><span>Name</span><span style="text-align:right">Fee</span><span style="text-align:right">Due window</span><span style="text-align:right">Modules</span><span style="text-align:right">Enrolled</span><span></span>
+          </div>
+          <sc-for list="{{ programmeRows }}" as="p" hint-placeholder-count="3">
+            <div style="display:grid;grid-template-columns:80px 1fr 100px 130px 90px 100px 110px;gap:12px;padding:11px 16px;border-top:1px solid #E4E7EC;align-items:center">
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:13px">{{ p.code }}</span>
+              <span style="font-weight:500">{{ p.name }}</span>
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-variant-numeric:tabular-nums;text-align:right">{{ p.fee }}</span>
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;text-align:right">{{ p.due }}</span>
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;text-align:right">{{ p.modules }}</span>
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;text-align:right">{{ p.enrolled }}</span>
+              <span style="text-align:right"><button onClick="{{ p.editFee }}" style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:4px;padding:5px 10px;font-size:13px;font-weight:500;cursor:pointer;flex:none;white-space:nowrap">Edit fee</button></span>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ showPayments }}" hint-placeholder-val="{{ false }}">
+        <h1 style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:28px;letter-spacing:-.02em;margin:0 0 18px">Payments</h1>
+        <input value="{{ paySearch }}" onChange="{{ setPaySearch }}" placeholder="Search by reference or student" style="width:420px;padding:9px 12px;border:1px solid #E4E7EC;border-radius:4px;background:#FFFFFF;margin-bottom:12px" />
+        <div style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:6px;overflow:hidden;max-width:1080px">
+          <div style="display:grid;grid-template-columns:130px 1fr 190px 110px 110px;gap:12px;padding:9px 16px;background:#F5F6F8;border-bottom:1px solid #E4E7EC;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#667085;font-weight:500">
+            <span>Date</span><span>Student</span><span>Reference</span><span style="text-align:right">Amount</span><span style="text-align:right">Status</span>
+          </div>
+          <sc-for list="{{ ledger }}" as="p" hint-placeholder-count="6">
+            <div style="display:grid;grid-template-columns:130px 1fr 190px 110px 110px;gap:12px;padding:10px 16px;border-top:1px solid #E4E7EC;align-items:center">
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-variant-numeric:tabular-nums">{{ p.date }}</span>
+              <span>{{ p.student }}</span>
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;text-decoration:{{ p.strike }}">{{ p.ref }}</span>
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-variant-numeric:tabular-nums;text-align:right;text-decoration:{{ p.strike }}">{{ p.amount }}</span>
+              <span style="text-align:right;font-size:12px;font-family:'IBM Plex Mono',monospace;color:{{ p.color }}">{{ p.status }}</span>
+            </div>
+          </sc-for>
+          <sc-if value="{{ noLedger }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:18px 16px;border-top:1px solid #E4E7EC;color:#667085">{{ ledgerEmpty }}</div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isStudent }}" hint-placeholder-val="{{ false }}">
+    <div style="background:#FFFFFF;border-bottom:1px solid #E4E7EC">
+      <div style="max-width:680px;margin:0 auto;padding:0 20px;display:flex;gap:28px;justify-content:center">
+        <sc-for list="{{ studentNav }}" as="t" hint-placeholder-count="3">
+          <button onClick="{{ t.go }}" style="background:none;border:0;padding:14px 0 12px;cursor:pointer;font-size:15px;font-weight:500;border-bottom:{{ t.border }};color:{{ t.color }}">{{ t.label }}</button>
+        </sc-for>
+      </div>
+    </div>
+    <div style="max-width:680px;margin:0 auto;padding:36px 20px 80px;font-size:16px">
+
+      <sc-if value="{{ showOverview }}" hint-placeholder-val="{{ true }}">
+        <h1 style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:28px;letter-spacing:-.02em;margin:0">{{ v.name }}</h1>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:14px;color:#667085;margin-top:6px">{{ v.subline }}</div>
+
+        <div style="border:1px solid #E4E7EC;border-radius:6px;background:#FFFFFF;padding:20px;margin-top:28px">
+          <div style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:16px">Fees</div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums;font-size:20px;margin-top:10px">{{ v.feeLine }}</div>
+          <div style="height:8px;border-radius:999px;background:#F5F6F8;border:1px solid #E4E7EC;margin-top:14px;overflow:hidden">
+            <div style="height:100%;width:{{ v.paidPct }};background:{{ v.barColor }}"></div>
+          </div>
+          <div style="font-size:14px;color:#667085;margin-top:10px">{{ v.feeStatus }}</div>
+        </div>
+
+        <sc-if value="{{ v.overdue }}" hint-placeholder-val="{{ true }}">
+          <div style="border:1px solid #B42318;border-radius:6px;background:#FFFFFF;padding:20px;margin-top:16px">
+            <div style="font-weight:600;color:#B42318">⚠ Payment overdue</div>
+            <div style="margin-top:8px;text-wrap:pretty">{{ v.overdueBody }}</div>
+            <div style="margin-top:8px;color:#667085;font-size:15px">Contact the Registry office to arrange payment.</div>
+          </div>
+        </sc-if>
+
+        <h2 style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:16px;margin:36px 0 10px">Due next</h2>
+        <sc-if value="{{ v.hasNext }}" hint-placeholder-val="{{ true }}">
+          <div style="border:1px solid #E4E7EC;border-radius:6px;background:#FFFFFF;padding:20px">
+            <div style="font-weight:500">{{ v.nextTitle }}</div>
+            <div style="color:#667085;margin-top:6px;font-size:15px">{{ v.nextMeta }}</div>
+            <button onClick="{{ goStudentAssessments }}" style="margin-top:14px;background:#101828;color:#FFFFFF;border:1px solid #101828;border-radius:4px;padding:10px 16px;font-weight:500;cursor:pointer;flex:none;white-space:nowrap" style-hover="background:#1D2939">Submit work</button>
+          </div>
+        </sc-if>
+        <sc-if value="{{ v.noNext }}" hint-placeholder-val="{{ false }}">
+          <div style="color:#667085">Nothing due. All open assessments have a submission.</div>
+        </sc-if>
+
+        <h2 style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:16px;margin:36px 0 10px">Recent results</h2>
+        <div style="border:1px solid #E4E7EC;border-radius:6px;background:#FFFFFF;overflow:hidden">
+          <sc-for list="{{ v.recent }}" as="r" hint-placeholder-count="3">
+            <div style="display:grid;grid-template-columns:1fr 70px 150px;gap:12px;padding:14px 20px;border-top:1px solid #E4E7EC;align-items:center">
+              <span>{{ r.title }}</span>
+              <span style="font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums;text-align:right">{{ r.grade }}</span>
+              <span style="text-align:right;color:{{ r.color }};font-size:15px">{{ r.label }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ showStudentAssessments }}" hint-placeholder-val="{{ false }}">
+        <h1 style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:28px;letter-spacing:-.02em;margin:0 0 24px">Assessments</h1>
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <sc-for list="{{ v.cards }}" as="c" hint-placeholder-count="4">
+            <div style="border:1px solid {{ c.border }};border-radius:6px;background:#FFFFFF;padding:20px;opacity:{{ c.opacity }}">
+              <div style="display:flex;justify-content:space-between;gap:16px;align-items:baseline">
+                <div>
+                  <div style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:18px">{{ c.title }}</div>
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#667085;margin-top:4px">{{ c.module }} · due {{ c.deadline }}</div>
+                </div>
+                <div style="font-size:14px;font-weight:500;color:{{ c.stateColor }};white-space:nowrap">{{ c.stateLabel }}</div>
+              </div>
+
+              <sc-if value="{{ c.showSubmitted }}" hint-placeholder-val="{{ false }}">
+                <div style="margin-top:14px;padding:12px 14px;border:1px solid #E4E7EC;border-radius:4px;display:flex;justify-content:space-between;gap:12px;align-items:center">
+                  <div>
+                    <div style="font-family:'IBM Plex Mono',monospace;font-size:14px">{{ c.file }}</div>
+                    <div style="font-size:14px;color:{{ c.lateColor }};margin-top:4px">{{ c.submittedLine }}</div>
+                  </div>
+                  <sc-if value="{{ c.canReplace }}" hint-placeholder-val="{{ false }}">
+                    <button onClick="{{ c.replace }}" style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:4px;padding:8px 12px;font-size:14px;font-weight:500;cursor:pointer;white-space:nowrap">Replace submission</button>
+                  </sc-if>
+                </div>
+                <sc-if value="{{ c.canReplace }}" hint-placeholder-val="{{ false }}">
+                  <div style="font-size:14px;color:#667085;margin-top:8px">{{ c.replaceNote }}</div>
+                </sc-if>
+              </sc-if>
+
+              <sc-if value="{{ c.showUpload }}" hint-placeholder-val="{{ true }}">
+                <div style="margin-top:14px;border:1px dashed #98A2B3;border-radius:4px;padding:22px;text-align:center;background:#F9FAFB">
+                  <div style="font-weight:500">Drag a file here, or</div>
+                  <button onClick="{{ c.upload }}" style="margin-top:10px;background:#101828;color:#FFFFFF;border:1px solid #101828;border-radius:4px;padding:9px 14px;font-weight:500;cursor:pointer;flex:none;white-space:nowrap" style-hover="background:#1D2939">Choose file</button>
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#667085;margin-top:12px">PDF, DOCX or ZIP · 10MB maximum</div>
+                </div>
+                <sc-if value="{{ c.uploading }}" hint-placeholder-val="{{ false }}">
+                  <div style="margin-top:12px">
+                    <div style="height:6px;border-radius:999px;background:#F5F6F8;border:1px solid #E4E7EC;overflow:hidden"><div style="height:100%;width:{{ c.progress }};background:#101828;transition:width 200ms"></div></div>
+                    <div style="font-size:14px;color:#667085;margin-top:8px;font-family:'IBM Plex Mono',monospace">{{ c.progressLabel }}</div>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ c.rejected }}" hint-placeholder-val="{{ false }}">
+                  <div style="font-size:14px;color:#B42318;margin-top:10px">{{ c.rejectMessage }}</div>
+                </sc-if>
+              </sc-if>
+
+              <sc-if value="{{ c.showClosedMissing }}" hint-placeholder-val="{{ false }}">
+                <div style="margin-top:14px;color:#667085">Deadline passed and no submission was received. Contact your module leader.</div>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ showMarksheet }}" hint-placeholder-val="{{ false }}">
+        <h1 style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:28px;letter-spacing:-.02em;margin:0">Marksheet</h1>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:14px;color:#667085;margin-top:6px">{{ v.name }} · {{ v.code }}</div>
+
+        <h2 style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:16px;margin:32px 0 10px">Published results</h2>
+        <div style="border:1px solid #E4E7EC;border-radius:6px;background:#FFFFFF;overflow:hidden">
+          <sc-for list="{{ v.published }}" as="r" hint-placeholder-count="2">
+            <div style="padding:20px;border-top:1px solid #E4E7EC">
+              <div style="display:flex;justify-content:space-between;gap:12px">
+                <span style="font-weight:500">{{ r.title }}</span>
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:14px;color:#667085">{{ r.module }}</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;margin-top:12px">
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:28px;font-variant-numeric:tabular-nums">{{ r.grade }}</span>
+                <span style="padding:3px 10px;border-radius:999px;font-size:13px;font-weight:500;background:{{ r.pillBg }};border:1px solid {{ r.pillBorder }};color:{{ r.pillFg }}">{{ r.classification }}</span>
+              </div>
+              <div style="font-size:14px;color:#667085;margin-top:10px">Published {{ r.publishedOn }}</div>
+            </div>
+          </sc-for>
+          <sc-if value="{{ v.noPublished }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:18px 20px;color:#667085">No results published yet. Marks appear here once the Registry releases them.</div>
+          </sc-if>
+        </div>
+
+        <sc-if value="{{ v.hasAverage }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-top:22px;padding:16px 20px;border:1px solid #E4E7EC;border-radius:6px;background:#FFFFFF">
+            <span style="font-weight:500">Average</span>
+            <span style="display:flex;align-items:baseline;gap:12px">
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:28px;font-variant-numeric:tabular-nums">{{ v.average }}</span>
+              <span style="color:#667085">{{ v.averageClass }}</span>
+            </span>
+          </div>
+          <div style="font-size:14px;color:#667085;margin-top:8px">{{ v.averageNote }}</div>
+        </sc-if>
+
+        <sc-if value="{{ v.hasWithheld }}" hint-placeholder-val="{{ true }}">
+          <h2 style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:16px;margin:36px 0 10px">Not yet available</h2>
+          <div style="border:1px solid #E4E7EC;border-radius:6px;background:#FFFFFF;overflow:hidden">
+            <sc-for list="{{ v.withheld }}" as="r" hint-placeholder-count="1">
+              <div style="padding:20px;border-top:1px solid #E4E7EC">
+                <div style="display:flex;justify-content:space-between;gap:12px">
+                  <span style="font-weight:500">{{ r.title }}</span>
+                  <span style="font-family:'IBM Plex Mono',monospace;font-size:14px;color:#667085">{{ r.module }}</span>
+                </div>
+                <div style="color:#B42318;font-weight:500;margin-top:10px">Result withheld</div>
+                <div style="color:#667085;margin-top:6px;font-size:15px;text-wrap:pretty">{{ r.reason }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+      </sc-if>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ payOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;background:rgba(16,24,40,.4);display:flex;align-items:center;justify-content:center;z-index:50;animation:fade 120ms ease-out">
+      <div style="width:440px;background:#FFFFFF;border:1px solid #E4E7EC;border-radius:6px;box-shadow:0 12px 32px rgba(16,24,40,.18);padding:22px;animation:rise 140ms ease-out">
+        <div style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:20px">Record payment</div>
+        <div style="color:#667085;font-size:13px;margin-top:6px">{{ pay.who }}</div>
+        <div style="display:flex;justify-content:space-between;margin-top:16px;padding:10px 12px;background:#F5F6F8;border-radius:4px;font-family:'IBM Plex Mono',monospace;font-size:13px;font-variant-numeric:tabular-nums">
+          <span>Outstanding</span><span>{{ pay.outstanding }}</span>
+        </div>
+        <label style="display:block;margin-top:14px">
+          <span style="display:block;font-size:13px;font-weight:500;margin-bottom:5px">Amount</span>
+          <input value="{{ payAmount }}" onChange="{{ setPayAmount }}" placeholder="0.00" style="width:100%;padding:9px 12px;border:1px solid {{ pay.amountBorder }};border-radius:4px;font-family:'IBM Plex Mono',monospace" />
+        </label>
+        <div style="font-size:13px;margin-top:6px;color:{{ pay.remainingColor }};font-family:'IBM Plex Mono',monospace">{{ pay.remainingLine }}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px">
+          <label style="display:block">
+            <span style="display:block;font-size:13px;font-weight:500;margin-bottom:5px">Date</span>
+            <input value="{{ payDate }}" onChange="{{ setPayDate }}" style="width:100%;padding:9px 12px;border:1px solid #E4E7EC;border-radius:4px;font-family:'IBM Plex Mono',monospace" />
+          </label>
+          <label style="display:block">
+            <span style="display:block;font-size:13px;font-weight:500;margin-bottom:5px">Reference</span>
+            <input value="{{ payRef }}" onChange="{{ setPayRef }}" placeholder="PMT-2026-0042" style="width:100%;padding:9px 12px;border:1px solid #E4E7EC;border-radius:4px;font-family:'IBM Plex Mono',monospace" />
+          </label>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px">
+          <button onClick="{{ closePay }}" style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:4px;padding:9px 14px;font-weight:500;cursor:pointer;flex:none;white-space:nowrap">Cancel</button>
+          <button onClick="{{ savePayment }}" disabled="{{ pay.blocked }}" style="background:{{ pay.saveBg }};color:#FFFFFF;border:1px solid {{ pay.saveBg }};border-radius:4px;padding:9px 14px;font-weight:500;cursor:{{ pay.saveCursor }}">Record payment</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ publishOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;background:rgba(16,24,40,.4);display:flex;align-items:center;justify-content:center;z-index:50;animation:fade 120ms ease-out">
+      <div style="width:520px;background:#FFFFFF;border:1px solid #E4E7EC;border-radius:6px;box-shadow:0 12px 32px rgba(16,24,40,.18);padding:22px;animation:rise 140ms ease-out">
+        <div style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:20px">Publish all marked results</div>
+        <div style="margin-top:8px;color:#667085;text-wrap:pretty">{{ pub.body }}</div>
+        <sc-if value="{{ pub.hasArrears }}" hint-placeholder-val="{{ true }}">
+          <div style="margin-top:16px;border:1px solid #B42318;border-radius:4px;padding:14px">
+            <div style="font-weight:500;color:#B42318;font-size:13px">⚠ {{ pub.arrearsCount }} of these students have an outstanding balance</div>
+            <div style="margin-top:10px;display:flex;flex-direction:column;gap:6px">
+              <sc-for list="{{ pub.arrearsList }}" as="a" hint-placeholder-count="2">
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-variant-numeric:tabular-nums;display:flex;justify-content:space-between"><span>{{ a.code }} {{ a.name }}</span><span style="color:#B42318">{{ a.balance }}</span></div>
+              </sc-for>
+            </div>
+            <label style="display:flex;gap:8px;align-items:center;margin-top:12px;font-size:13px;cursor:pointer">
+              <input type="checkbox" checked="{{ excludeOverdue }}" onChange="{{ toggleExclude }}" />
+              <span>Withhold results for students in arrears</span>
+            </label>
+          </div>
+        </sc-if>
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px">
+          <button onClick="{{ closePublish }}" style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:4px;padding:9px 14px;font-weight:500;cursor:pointer;flex:none;white-space:nowrap">Cancel</button>
+          <button onClick="{{ confirmPublishAll }}" style="background:#101828;color:#FFFFFF;border:1px solid #101828;border-radius:4px;padding:9px 14px;font-weight:500;cursor:pointer;flex:none;white-space:nowrap" style-hover="background:#1D2939">{{ pub.confirmLabel }}</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ feeDialogOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;background:rgba(16,24,40,.4);display:flex;align-items:center;justify-content:center;z-index:50;animation:fade 120ms ease-out">
+      <div style="width:460px;background:#FFFFFF;border:1px solid #E4E7EC;border-radius:6px;box-shadow:0 12px 32px rgba(16,24,40,.18);padding:22px;animation:rise 140ms ease-out">
+        <div style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:20px">Change programme fee</div>
+        <div style="color:#667085;font-size:13px;margin-top:6px">{{ feeDialog.name }}</div>
+        <label style="display:block;margin-top:14px">
+          <span style="display:block;font-size:13px;font-weight:500;margin-bottom:5px">Fee</span>
+          <input value="{{ feeDialog.value }}" onChange="{{ setFeeValue }}" style="width:100%;padding:9px 12px;border:1px solid #E4E7EC;border-radius:4px;font-family:'IBM Plex Mono',monospace" />
+        </label>
+        <div style="margin-top:14px;border:1px solid #E4E7EC;border-left:2px solid #B54708;border-radius:4px;padding:12px 14px;font-size:13px;text-wrap:pretty">{{ feeDialog.warning }}</div>
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px">
+          <button onClick="{{ closeFeeDialog }}" style="background:#FFFFFF;border:1px solid #E4E7EC;border-radius:4px;padding:9px 14px;font-weight:500;cursor:pointer;flex:none;white-space:nowrap">Cancel</button>
+          <button onClick="{{ saveFee }}" style="background:#101828;color:#FFFFFF;border:1px solid #101828;border-radius:4px;padding:9px 14px;font-weight:500;cursor:pointer;flex:none;white-space:nowrap">Change fee</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;z-index:60;bottom:24px;right:{{ toastRight }};left:{{ toastLeft }};transform:{{ toastTransform }};background:#101828;color:#FFFFFF;border:1px solid {{ toastBorder }};border-radius:4px;padding:11px 16px;font-size:14px;animation:rise 140ms ease-out">{{ toast }}</div>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+  state = {
+    viewer: 'staff', staffTab: 'dashboard', studentTab: 'overview',
+    viewingStudent: 'SMS-2025-0004',
+    search: '', progFilter: 'All', statusFilter: 'All',
+    selected: null, detailTab: 'fees',
+    formMode: null, form: null, statusReason: '',
+    payOpen: false, payAmount: '', payRef: '', payDate: '14/03/2026',
+    asmt: null, asmtFilter: 'All', gradeEdits: {}, resultEdits: {},
+    publishOpen: false, excludeOverdue: true,
+    feeProg: null, feeValue: '',
+    paySearch: '', payments: {}, uploads: {}, uploading: null, progress: 0,
+    toast: null,
+  };
+
+  today = '14 March 2026';
+
+  programmes = [
+    { code: 'CSE', name: 'Computer Science', module: 'CSE-201', moduleName: 'Data Structures', fee: 100, window: '30 days', due: '12 April 2026', modules: 6 },
+    { code: 'BBA', name: 'Business Administration', module: 'BBA-110', moduleName: 'Marketing Principles', fee: 50, window: '30 days', due: '12 April 2026', modules: 5 },
+    { code: 'ENG', name: 'Electrical Engineering', module: 'ENG-140', moduleName: 'Circuit Theory', fee: 120, window: '45 days', due: '27 April 2026', modules: 6 },
+  ];
+
+  studentsRaw = [
+    { code: 'SMS-2025-0001', name: 'Aisha Rahman', prog: 'CSE', year: 1, status: 'Enrolled', fee: 100, paid: 100, due: '11 Feb 2026', daysOver: 0, dob: '12 Mar 2004', enrolled: '08 Jan 2026', payments: [{ date: '20 Jan 2026', ref: 'PMT-2026-0004', amount: 100, status: 'Cleared' }] },
+    { code: 'SMS-2025-0002', name: 'Farhan Khan', prog: 'CSE', year: 1, status: 'Enrolled', fee: 100, paid: 100, due: '11 Feb 2026', daysOver: 0, dob: '02 Sep 2003', enrolled: '08 Jan 2026' },
+    { code: 'SMS-2025-0003', name: 'Nabila Chowdhury', prog: 'BBA', year: 2, status: 'Enrolled', fee: 50, paid: 50, due: '11 Feb 2026', daysOver: 0, dob: '19 Jun 2003', enrolled: '09 Jan 2026' },
+    { code: 'SMS-2025-0004', name: 'Rafi Hasan', prog: 'CSE', year: 1, status: 'Enrolled', fee: 100, paid: 0, due: '11 Jan 2026', daysOver: 62, dob: '04 Feb 2003', enrolled: '12 Jan 2026', payments: [] },
+    { code: 'SMS-2025-0005', name: 'Mehedi Alam', prog: 'CSE', year: 2, status: 'Enrolled', fee: 100, paid: 100, due: '11 Feb 2026', daysOver: 0, dob: '27 Nov 2002', enrolled: '08 Jan 2026' },
+    { code: 'SMS-2025-0006', name: 'Sumaiya Akter', prog: 'BBA', year: 1, status: 'Enrolled', fee: 50, paid: 50, due: '11 Feb 2026', daysOver: 0, dob: '15 Jan 2004', enrolled: '10 Jan 2026' },
+    { code: 'SMS-2025-0007', name: 'Tanvir Ahmed', prog: 'CSE', year: 3, status: 'Enrolled', fee: 100, paid: 65, due: '02 Mar 2026', daysOver: 12, dob: '30 Jul 2001', enrolled: '07 Jan 2026', payments: [{ date: '02 Feb 2026', ref: 'PMT-2026-0031', amount: 65, status: 'Cleared' }] },
+    { code: 'SMS-2025-0008', name: 'Rumana Begum', prog: 'ENG', year: 2, status: 'Enrolled', fee: 120, paid: 120, due: '25 Feb 2026', daysOver: 0, dob: '11 Apr 2003', enrolled: '09 Jan 2026' },
+    { code: 'SMS-2025-0009', name: 'Sadia Islam', prog: 'BBA', year: 2, status: 'Deferred', fee: 50, paid: 25, due: '01 Mar 2026', daysOver: 13, dob: '06 Dec 2002', enrolled: '09 Jan 2026', payments: [{ date: '18 Feb 2026', ref: 'PMT-2026-0044', amount: 25, status: 'Cleared' }, { date: '12 Feb 2026', ref: 'PMT-2026-0039', amount: 25, status: 'Reversed' }] },
+    { code: 'SMS-2025-0010', name: 'Zahid Hossain', prog: 'ENG', year: 1, status: 'Enrolled', fee: 120, paid: 120, due: '25 Feb 2026', daysOver: 0, dob: '21 May 2004', enrolled: '11 Jan 2026' },
+    { code: 'SMS-2025-0011', name: 'Nusrat Jahan', prog: 'BBA', year: 3, status: 'Enrolled', fee: 50, paid: 0, due: '01 Feb 2026', daysOver: 41, dob: '03 Oct 2001', enrolled: '07 Jan 2026', payments: [] },
+    { code: 'SMS-2025-0012', name: 'Imtiaz Karim', prog: 'CSE', year: 3, status: 'Withdrawn', fee: 100, paid: 100, due: '11 Feb 2026', daysOver: 0, dob: '14 Aug 2001', enrolled: '06 Jan 2026' },
+    { code: 'SMS-2025-0013', name: 'Prova Das', prog: 'ENG', year: 1, status: 'Enrolled', fee: 120, paid: 60, due: '20 Mar 2026', daysOver: 0, dob: '29 Jan 2004', enrolled: '12 Jan 2026', payments: [{ date: '01 Mar 2026', ref: 'PMT-2026-0051', amount: 60, status: 'Cleared' }] },
+    { code: 'SMS-2025-0014', name: 'Sabbir Rahman', prog: 'CSE', year: 2, status: 'Completed', fee: 100, paid: 100, due: '11 Feb 2026', daysOver: 0, dob: '08 Mar 2002', enrolled: '06 Jan 2026' },
+  ];
+
+  assessments = [
+    {
+      id: 'a0', title: 'Lab Test 1', module: 'CSE-201', moduleName: 'Data Structures', prog: 'CSE',
+      deadline: '20 Feb 2026, 17:00', relative: 'closed 22 days ago', closed: true, replaceUntil: null,
+      rows: {
+        'SMS-2025-0001': { at: '18 Feb 11:20', file: 'pdf', grade: 82, state: 'Published', pub: '24 February 2026' },
+        'SMS-2025-0002': { at: '19 Feb 16:45', file: 'pdf', grade: 58, state: 'Published', pub: '24 February 2026' },
+        'SMS-2025-0004': { at: '19 Feb 09:12', file: 'pdf', grade: 61, state: 'Published', pub: '24 February 2026' },
+        'SMS-2025-0005': { at: '17 Feb 20:02', file: 'pdf', grade: 74, state: 'Published', pub: '24 February 2026' },
+        'SMS-2025-0007': { at: '20 Feb 16:58', file: 'pdf', grade: 66, state: 'Published', pub: '24 February 2026' },
+        'SMS-2025-0014': { at: '18 Feb 13:30', file: 'pdf', grade: 70, state: 'Published', pub: '24 February 2026' },
+      },
+    },
+    {
+      id: 'a1', title: 'Midterm Report', module: 'CSE-201', moduleName: 'Data Structures', prog: 'CSE',
+      deadline: '11 Mar 2026, 17:00', relative: 'closed 3 days ago', closed: true, replaceUntil: null,
+      rows: {
+        'SMS-2025-0001': { at: '10 Mar 14:22', file: 'pdf', grade: 78, state: 'Published', pub: '14 March 2026' },
+        'SMS-2025-0002': { at: '11 Mar 09:03', file: 'pdf', grade: 65, state: 'Published', pub: '14 March 2026' },
+        'SMS-2025-0004': { at: '13 Mar 09:10', file: 'docx', late: '2 days 16h late', attempt: 'Attempt 2 of 2', grade: 55, state: 'Withheld', reason: 'Outstanding balance on the student account. Release once the fee is cleared.' },
+        'SMS-2025-0005': { at: '09 Mar 18:40', file: 'pdf', grade: 71, state: 'Published', pub: '14 March 2026' },
+        'SMS-2025-0007': { at: '12 Mar 08:15', file: 'pdf', late: '15h 15m late', grade: 62, state: 'Draft' },
+        'SMS-2025-0014': { at: null, state: 'Draft' },
+      },
+    },
+    {
+      id: 'a2', title: 'Case Study 1', module: 'BBA-110', moduleName: 'Marketing Principles', prog: 'BBA',
+      deadline: '20 Mar 2026, 23:59', relative: 'in 6 days', closed: false, replaceUntil: '20 March, 23:59',
+      rows: {
+        'SMS-2025-0003': { at: '12 Mar 10:05', file: 'pdf', state: 'Draft' },
+        'SMS-2025-0006': { at: '13 Mar 21:11', file: 'docx', state: 'Draft' },
+        'SMS-2025-0009': { at: null, state: 'Draft' },
+        'SMS-2025-0011': { at: null, state: 'Draft' },
+      },
+    },
+    {
+      id: 'a3', title: 'Reflective Essay', module: 'CSE-201', moduleName: 'Data Structures', prog: 'CSE',
+      deadline: '25 Mar 2026, 23:59', relative: 'in 11 days', closed: false, replaceUntil: '25 March, 23:59',
+      rows: {
+        'SMS-2025-0001': { at: '11 Mar 12:00', file: 'pdf', state: 'Draft' },
+        'SMS-2025-0004': { at: '12 Mar 16:02', file: 'pdf', state: 'Draft' },
+        'SMS-2025-0002': { at: null, state: 'Draft' },
+        'SMS-2025-0005': { at: null, state: 'Draft' },
+        'SMS-2025-0007': { at: null, state: 'Draft' },
+        'SMS-2025-0014': { at: null, state: 'Draft' },
+      },
+    },
+    {
+      id: 'a4', title: 'Final Project', module: 'CSE-201', moduleName: 'Data Structures', prog: 'CSE',
+      deadline: '02 Apr 2026, 17:00', relative: 'in 19 days', closed: false, replaceUntil: '2 April, 17:00',
+      rows: {
+        'SMS-2025-0001': { at: null, state: 'Draft' }, 'SMS-2025-0002': { at: null, state: 'Draft' },
+        'SMS-2025-0004': { at: null, state: 'Draft' }, 'SMS-2025-0005': { at: null, state: 'Draft' },
+        'SMS-2025-0007': { at: null, state: 'Draft' }, 'SMS-2025-0014': { at: null, state: 'Draft' },
+      },
+    },
+  ];
+
+  ink = '#101828'; muted = '#667085'; rule = '#E4E7EC'; alert = '#B42318';
+
+  statusFg(s) {
+    return { Enrolled: '#067647', Deferred: '#B54708', Withdrawn: '#667085', Completed: '#175CD3' }[s] || '#667085';
+  }
+  money(n) { return '$' + Number(n).toFixed(2); }
+  classify(g) {
+    if (g === null || g === undefined || g === '' || isNaN(Number(g))) return '—';
+    const n = Number(g);
+    return n >= 70 ? 'Distinction' : n >= 60 ? 'Merit' : n >= 50 ? 'Pass' : 'Fail';
+  }
+  toast(msg) {
+    clearTimeout(this._t);
+    this.setState({ toast: msg });
+    this._t = setTimeout(() => this.setState({ toast: null }), 2600);
+  }
+
+  student(code) { return this.studentsRaw.find(s => s.code === code); }
+
+  paymentsFor(st) {
+    const extra = this.state.payments[st.code] || [];
+    let base = st.payments;
+    if (!base) base = st.paid > 0 ? [{ date: '02 Feb 2026', ref: 'PMT-2026-0' + st.code.slice(-3), amount: st.paid, status: 'Cleared' }] : [];
+    return extra.concat(base);
+  }
+  paidFor(st) {
+    const extra = (this.state.payments[st.code] || []).reduce((a, p) => a + p.amount, 0);
+    return st.paid + extra;
+  }
+  balanceFor(st) { return Math.max(0, st.fee - this.paidFor(st)); }
+  overdueFor(st) { return this.balanceFor(st) > 0 && st.daysOver > 0; }
+
+  gradeOf(aid, code) {
+    const k = aid + '|' + code;
+    if (k in this.state.gradeEdits) return this.state.gradeEdits[k];
+    const r = this.assessments.find(a => a.id === aid).rows[code];
+    return r && r.grade !== undefined ? String(r.grade) : '';
+  }
+  stateOf(aid, code) {
+    const k = aid + '|' + code;
+    if (k in this.state.resultEdits) return this.state.resultEdits[k];
+    const r = this.assessments.find(a => a.id === aid).rows[code];
+    return (r && r.state) || 'Draft';
+  }
+  subOf(aid, code) {
+    const r = this.assessments.find(a => a.id === aid).rows[code] || {};
+    const up = this.state.uploads[aid + '|' + code];
+    if (up) return Object.assign({}, r, up);
+    return r;
+  }
+
+  decorate(st) {
+    const bal = this.balanceFor(st);
+    const over = this.overdueFor(st);
+    const fg = this.statusFg(st.status);
+    return {
+      code: st.code, name: st.name, status: st.status, year: st.year,
+      programme: this.programmes.find(p => p.code === st.prog).name,
+      progCode: st.prog,
+      balance: this.money(bal), balanceRaw: bal,
+      balanceColor: over ? this.alert : bal > 0 ? this.ink : this.muted,
+      overdue: over, daysLabel: st.daysOver + ' days over',
+      pillFg: fg, pillBg: fg + '1A', pillBorder: fg + '4D',
+      borderLeft: over ? '2px solid #B42318' : '2px solid transparent',
+      opacity: st.status === 'Withdrawn' ? 0.6 : 1,
+      open: () => this.setState({ selected: st.code, staffTab: 'students', detailTab: 'fees' }),
+    };
+  }
+
+  setStaffTab(t) { this.setState({ staffTab: t, selected: null, asmt: null, formMode: null }); }
+
+  saveGrade(aid, code) {
+    const g = this.gradeOf(aid, code);
+    if (g === '') return;
+    if (isNaN(Number(g)) || Number(g) < 0 || Number(g) > 100) { this.toast('Grade must be a number from 0 to 100.'); return; }
+    this.toast('Grade saved. ' + code + ' · ' + this.classify(g));
+  }
+
+  renderVals() {
+    const s = this.state;
+    const isStaff = s.viewer === 'staff';
+    const all = this.studentsRaw.map(x => this.decorate(x));
+    const overdueAll = all.filter(r => r.overdue).sort((a, b) => this.student(b.code).daysOver - this.student(a.code).daysOver);
+    const out = {};
+
+    out.viewer = s.viewer;
+    out.isStaff = isStaff;
+    out.isStudent = !isStaff;
+    out.viewingStudent = s.viewingStudent;
+    out.setViewer = e => this.setState({ viewer: e.target.value });
+    out.setViewingStudent = e => this.setState({ viewingStudent: e.target.value });
+    out.studentGroups = this.programmes.map(p => ({
+      label: p.name,
+      items: this.studentsRaw.filter(x => x.prog === p.code).map(x => ({ code: x.code, label: x.name + ' · ' + x.code })),
+    }));
+    out.programmes = this.programmes.map(p => ({ code: p.code, name: p.name, longLabel: p.name + ' (' + p.code + ') — ' + this.money(p.fee) }));
+    out.notImplemented = () => this.toast('Not part of this design walkthrough.');
+
+    const navBorder = on => on ? '2px solid #101828' : '2px solid transparent';
+    out.staffNav = [['dashboard', 'Dashboard'], ['students', 'Students'], ['assessments', 'Assessments'], ['programmes', 'Programmes'], ['payments', 'Payments']]
+      .map(([id, label]) => ({ label, border: navBorder(s.staffTab === id), color: s.staffTab === id ? this.ink : this.muted, go: () => this.setStaffTab(id) }));
+    out.studentNav = [['overview', 'Overview'], ['assessments', 'Assessments'], ['marksheet', 'Marksheet']]
+      .map(([id, label]) => ({ label, border: navBorder(s.studentTab === id), color: s.studentTab === id ? this.ink : this.muted, go: () => this.setState({ studentTab: id }) }));
+
+    out.showDashboard = isStaff && s.staffTab === 'dashboard';
+    out.showStudents = isStaff && s.staffTab === 'students' && !s.selected && !s.formMode;
+    out.showForm = isStaff && !!s.formMode;
+    out.showDetail = isStaff && !!s.selected && !s.formMode;
+    out.showAssessments = isStaff && s.staffTab === 'assessments' && !s.asmt;
+    out.showMarking = isStaff && s.staffTab === 'assessments' && !!s.asmt;
+    out.showProgrammes = isStaff && s.staffTab === 'programmes';
+    out.showPayments = isStaff && s.staffTab === 'payments';
+    out.back = e => { if (e) e.preventDefault(); this.setState({ selected: null, asmt: null, formMode: null }); };
+
+    // dashboard
+    const outstandingTotal = all.reduce((a, r) => a + r.balanceRaw, 0);
+    const enrolledCount = this.studentsRaw.filter(x => x.status === 'Enrolled').length;
+    let unmarked = 0, late = 0, lateAsmt = 0;
+    this.assessments.forEach(a => {
+      let l = 0;
+      Object.keys(a.rows).forEach(c => {
+        const r = this.subOf(a.id, c);
+        if (r.at && this.gradeOf(a.id, c) === '') unmarked++;
+        if (r.late) l++;
+      });
+      late += l; if (l) lateAsmt++;
+    });
+    out.tiles = [
+      { value: String(this.studentsRaw.length), label: 'students · ' + enrolledCount + ' enrolled', color: this.ink },
+      { value: this.money(outstandingTotal), label: 'outstanding', color: this.ink },
+      { value: String(overdueAll.length), label: 'overdue students', color: overdueAll.length ? this.alert : this.muted },
+      { value: String(unmarked), label: 'awaiting marking', color: this.ink },
+    ];
+    out.overdueList = overdueAll.slice(0, 4).map((r, i) => Object.assign({}, r, { divider: i === 0 ? '0' : '1px solid #E4E7EC' }));
+    out.hasOverdue = overdueAll.length > 0;
+    out.noOverdue = overdueAll.length === 0;
+    out.lateCount = String(late);
+    out.lateAssessments = String(lateAsmt);
+    out.goStudentsOverdue = e => { e.preventDefault(); this.setState({ staffTab: 'students', statusFilter: 'Overdue', selected: null }); };
+    out.goLate = e => { e.preventDefault(); this.setState({ staffTab: 'assessments', asmt: 'a1', asmtFilter: 'Late' }); };
+    const ready = this.assessments.find(a => a.id === 'a1');
+    const readyMarked = Object.keys(ready.rows).filter(c => this.gradeOf('a1', c) !== '').length;
+    const readyPending = Object.keys(ready.rows).filter(c => this.gradeOf('a1', c) !== '' && this.stateOf('a1', c) !== 'Published').length;
+    out.readyTitle = ready.title + ' — ' + ready.moduleName;
+    out.readyRatio = readyMarked + ' of ' + Object.keys(ready.rows).length;
+    out.readyPending = String(readyPending);
+    out.goReady = () => this.setState({ staffTab: 'assessments', asmt: 'a1', asmtFilter: 'Unmarked' });
+
+    // students list
+    out.search = s.search; out.progFilter = s.progFilter; out.statusFilter = s.statusFilter;
+    out.setSearch = e => this.setState({ search: e.target.value });
+    out.setProgFilter = e => this.setState({ progFilter: e.target.value });
+    out.setStatusFilter = e => this.setState({ statusFilter: e.target.value });
+    const q = s.search.trim().toLowerCase();
+    const filtered = all.filter(r => {
+      const st = this.student(r.code);
+      if (q && !(r.name + ' ' + r.code + ' ' + (st.name.toLowerCase().replace(' ', '.') + '@example.edu')).toLowerCase().includes(q)) return false;
+      if (s.progFilter !== 'All' && r.progCode !== s.progFilter) return false;
+      if (s.statusFilter === 'Overdue') return r.overdue;
+      if (s.statusFilter !== 'All' && r.status !== s.statusFilter) return false;
+      return true;
+    });
+    out.filteredStudents = filtered;
+    out.countLine = filtered.length + ' students · ' + filtered.filter(r => r.overdue).length + ' overdue';
+    out.noStudentResults = filtered.length === 0;
+    out.emptySearchLine = q ? 'No students match “' + s.search + '”. Check the spelling or clear filters.' : 'No students match these filters.';
+    const chips = [];
+    if (s.progFilter !== 'All') chips.push({ label: 'Programme: ' + s.progFilter, clear: () => this.setState({ progFilter: 'All' }) });
+    if (s.statusFilter !== 'All') chips.push({ label: (s.statusFilter === 'Overdue' ? 'Overdue balance' : 'Status: ' + s.statusFilter), clear: () => this.setState({ statusFilter: 'All' }) });
+    if (q) chips.push({ label: 'Search: ' + s.search, clear: () => this.setState({ search: '' }) });
+    out.chips = chips; out.hasChips = chips.length > 0;
+    out.clearFilters = () => this.setState({ search: '', progFilter: 'All', statusFilter: 'All' });
+    out.newStudent = () => this.setState({ formMode: 'new', staffTab: 'students', selected: null, form: { name: '', email: '', dob: '', prog: '', year: '1', status: 'Enrolled' } });
+
+    // form
+    const f = s.form || { name: '', email: '', dob: '', prog: '', year: '1', status: 'Enrolled' };
+    out.formTitle = s.formMode === 'edit' ? 'Edit ' + f.name : 'Add student';
+    out.saveLabel = s.formMode === 'edit' ? 'Save changes' : 'Create student';
+    out.formName = f.name; out.formEmail = f.email; out.formDob = f.dob;
+    out.formProgramme = f.prog; out.formYear = String(f.year); out.formStatus = f.status;
+    const setF = (k, v) => this.setState({ form: Object.assign({}, f, { [k]: v }) });
+    out.setFormName = e => setF('name', e.target.value);
+    out.setFormEmail = e => setF('email', e.target.value);
+    out.setFormDob = e => setF('dob', e.target.value);
+    out.setFormProgramme = e => setF('prog', e.target.value);
+    out.setFormYear = e => setF('year', e.target.value);
+    out.setFormStatus = e => setF('status', e.target.value);
+    out.emailError = f.email.length > 0 && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f.email);
+    out.emailBorder = out.emailError ? this.alert : this.rule;
+    const fp = this.programmes.find(p => p.code === f.prog);
+    out.hasFormProgramme = !!fp;
+    out.progSummaryTitle = fp ? fp.name + ' (' + fp.code + ')' : '';
+    out.progSummaryFee = fp ? 'Fee ' + this.money(fp.fee) + ' · due ' + fp.due + ' (' + fp.window + ')' : '';
+    out.codePreview = s.formMode === 'edit' ? f.code : 'SMS-2026-••••   Generated on save';
+    out.statusChanged = s.formMode === 'edit' && f.status !== f.originalStatus;
+    out.statusReason = s.statusReason;
+    out.setStatusReason = e => this.setState({ statusReason: e.target.value });
+    out.saveStudent = () => {
+      if (!f.name || out.emailError) { this.toast('Fix the highlighted fields before saving.'); return; }
+      if (s.formMode === 'edit') { this.toast('Changes saved. Status change recorded in history.'); this.setState({ formMode: null }); }
+      else { this.toast('Student created. Code SMS-2026-0015 assigned.'); this.setState({ formMode: null }); }
+    };
+    out.editStudent = () => {
+      const st = this.student(s.selected);
+      this.setState({ formMode: 'edit', form: { code: st.code, name: st.name, email: st.name.toLowerCase().replace(/ /g, '.') + '@example.edu', dob: st.dob, prog: st.prog, year: String(st.year), status: st.status, originalStatus: st.status } });
+    };
+
+    // student detail
+    if (s.selected) {
+      const st = this.student(s.selected);
+      const dr = this.decorate(st);
+      const p = this.programmes.find(x => x.code === st.prog);
+      const pays = this.paymentsFor(st).map(x => ({
+        date: x.date, ref: x.ref, amount: this.money(x.amount), status: x.status,
+        color: x.status === 'Reversed' ? this.alert : this.muted,
+        strike: x.status === 'Reversed' ? 'line-through' : 'none',
+      }));
+      const subs = [];
+      this.assessments.forEach(a => {
+        const r = this.subOf(a.id, st.code);
+        if (!a.rows[st.code] || !r.at) return;
+        subs.push({
+          title: a.title, module: a.module, attempt: r.attempt || 'Attempt 1 of 1',
+          submittedAt: r.at, lateLabel: r.late || 'On time', lateColor: r.late ? this.alert : this.muted,
+          file: '⬇ ' + (r.file || 'file'), download: e => { e.preventDefault(); this.toast('Download started.'); },
+          gradeLabel: this.gradeOf(a.id, st.code) === '' ? 'unmarked' : this.gradeOf(a.id, st.code) + ' · ' + this.classify(this.gradeOf(a.id, st.code)),
+          borderLeft: r.late ? '2px solid #B42318' : '2px solid transparent',
+        });
+      });
+      const results = this.assessments.filter(a => a.rows[st.code] && this.gradeOf(a.id, st.code) !== '').map(a => {
+        const stt = this.stateOf(a.id, st.code);
+        return {
+          title: a.title, module: a.module, grade: this.gradeOf(a.id, st.code),
+          classification: this.classify(this.gradeOf(a.id, st.code)), state: stt,
+          stateColor: stt === 'Published' ? '#067647' : stt === 'Withheld' ? this.alert : this.muted,
+          action: stt === 'Published' ? 'Withhold' : 'Publish',
+          toggle: () => {
+            const k = a.id + '|' + st.code;
+            const next = stt === 'Published' ? 'Withheld' : 'Published';
+            this.setState({ resultEdits: Object.assign({}, s.resultEdits, { [k]: next }) });
+            this.toast(next === 'Published' ? 'Result published.' : 'Result withheld.');
+          },
+        };
+      });
+      out.d = {
+        code: st.code, name: st.name, status: st.status,
+        line1: st.name.toLowerCase().replace(/ /g, '.') + '@example.edu · ' + p.name + ' · Year ' + st.year,
+        line2: 'Born ' + st.dob + ' · Enrolled ' + st.enrolled,
+        pillFg: dr.pillFg, pillBg: dr.pillBg, pillBorder: dr.pillBorder,
+        balanceColor: dr.balanceColor,
+        balanceStamp: dr.overdue ? '⚠ ' + dr.balance + ' overdue' : dr.balanceRaw > 0 ? dr.balance + ' outstanding' : 'Paid in full',
+        feeLabel: 'Tuition 2025/26 · ' + p.code, fee: this.money(st.fee), paid: this.money(this.paidFor(st)),
+        balance: dr.balance, dueDate: st.due,
+        overdueNote: dr.overdue ? '⚠ ' + st.daysOver + ' days overdue' : '',
+        payments: pays, hasPayments: pays.length > 0, noPayments: pays.length === 0,
+        submissions: subs, noSubmissions: subs.length === 0,
+        results: results,
+        history: [
+          { date: st.enrolled, text: 'Enrolled on ' + p.name + ', Year ' + st.year + '. Fee ' + this.money(st.fee) + ' assigned, due ' + st.due + '.' },
+          { date: '02 Feb 2026', text: st.status === 'Deferred' ? 'Status changed Enrolled → Deferred. Reason: medical leave.' : 'Fee record confirmed by Registry.' },
+          { date: '14 Mar 2026', text: dr.overdue ? 'Account flagged overdue (' + st.daysOver + ' days).' : 'No action outstanding.' },
+        ],
+      };
+    } else out.d = {};
+    out.detailTabs = [['fees', 'Fees'], ['submissions', 'Submissions'], ['results', 'Results'], ['history', 'History']]
+      .map(([id, label]) => ({ label, border: navBorder(s.detailTab === id), color: s.detailTab === id ? this.ink : this.muted, go: () => this.setState({ detailTab: id }) }));
+    out.isFeesTab = s.detailTab === 'fees';
+    out.isSubsTab = s.detailTab === 'submissions';
+    out.isResultsTab = s.detailTab === 'results';
+    out.isHistoryTab = s.detailTab === 'history';
+
+    // assessments list
+    out.assessmentRows = this.assessments.map(a => {
+      const codes = Object.keys(a.rows);
+      const sub = codes.filter(c => this.subOf(a.id, c).at).length;
+      const marked = codes.filter(c => this.gradeOf(a.id, c) !== '').length;
+      return {
+        title: a.title, module: a.module, deadline: a.deadline, relative: a.relative,
+        relColor: a.closed ? this.muted : this.ink,
+        submitted: sub + '/' + codes.length,
+        marked: marked + '/' + codes.length + (marked === codes.length ? ' ✓' : ''),
+        markedColor: a.closed && marked < codes.length ? '#B54708' : this.ink,
+        open: () => this.setState({ asmt: a.id, asmtFilter: 'All' }),
+      };
+    });
+
+    // marking
+    if (s.asmt) {
+      const a = this.assessments.find(x => x.id === s.asmt);
+      const codes = Object.keys(a.rows).sort();
+      const rowFor = code => {
+        const st = this.student(code);
+        const r = this.subOf(a.id, code);
+        const dr = this.decorate(st);
+        const stt = this.stateOf(a.id, code);
+        const g = this.gradeOf(a.id, code);
+        return {
+          code, name: st.name, arrears: dr.overdue, arrearsLabel: dr.balance + ' overdue · ' + st.daysOver + ' days',
+          submittedAt: r.at || 'Not submitted', subColor: r.at ? this.ink : this.muted,
+          lateLabel: r.late ? '⚠ ' + r.late : '', attempt: r.attempt || '',
+          file: r.file ? '⬇ ' + r.file : '—',
+          download: e => { e.preventDefault(); if (r.file) this.toast('Download started.'); },
+          gradeValue: g, classification: this.classify(g),
+          setGrade: e => this.setState({ gradeEdits: Object.assign({}, s.gradeEdits, { [a.id + '|' + code]: e.target.value }) }),
+          commitGrade: () => this.saveGrade(a.id, code),
+          keyGrade: e => { if (e.key === 'Enter') e.target.blur(); },
+          state: stt, stateColor: stt === 'Published' ? '#067647' : stt === 'Withheld' ? this.alert : this.muted,
+          withheld: stt === 'Withheld', reason: (a.rows[code] && a.rows[code].reason) || 'Withheld by Registry.',
+          canPublish: g !== '' && stt !== 'Published',
+          canWithhold: stt === 'Published',
+          publish: () => { this.setState({ resultEdits: Object.assign({}, s.resultEdits, { [a.id + '|' + code]: 'Published' }) }); this.toast('Result published.'); },
+          withhold: () => { this.setState({ resultEdits: Object.assign({}, s.resultEdits, { [a.id + '|' + code]: 'Withheld' }) }); this.toast('Result withheld.'); },
+          borderLeft: dr.overdue || r.late ? '2px solid #B42318' : '2px solid transparent',
+          _late: !!r.late, _missing: !r.at, _unmarked: g === '', _withheld: stt === 'Withheld',
+        };
+      };
+      const rows = codes.map(rowFor);
+      const filt = s.asmtFilter;
+      const shown = rows.filter(r => filt === 'All' || (filt === 'Late' && r._late) || (filt === 'Missing' && r._missing) || (filt === 'Unmarked' && r._unmarked) || (filt === 'Withheld' && r._withheld));
+      const nSub = rows.filter(r => !r._missing).length;
+      const nMarked = rows.filter(r => !r._unmarked).length;
+      const nPub = rows.filter(r => r.state === 'Published').length;
+      out.m = {
+        title: a.title,
+        subtitle: a.module + ' ' + a.moduleName + ' · Deadline ' + a.deadline + ' · ' + a.relative,
+        stats: nSub + ' submitted · ' + (rows.length - nSub) + ' missing · ' + rows.filter(r => r._late).length + ' late · ' + nMarked + ' marked · ' + nPub + ' published',
+        rows: shown, noRows: shown.length === 0,
+        emptyLine: 'No ' + filt.toLowerCase() + ' submissions for this assessment. Nothing to chase.',
+        filters: ['All', 'Late', 'Missing', 'Unmarked', 'Withheld'].map(fl => ({
+          label: fl, bg: filt === fl ? this.ink : '#FFFFFF', fg: filt === fl ? '#FFFFFF' : this.ink,
+          border: filt === fl ? this.ink : this.rule, go: () => this.setState({ asmtFilter: fl }),
+        })),
+      };
+      const marked = rows.filter(r => !r._unmarked && r.state !== 'Published');
+      const arrears = marked.filter(r => r.arrears);
+      out.pub = {
+        body: marked.length + ' marked results will become visible to students. ' + (marked.length ? 'Published results cannot be unseen — withhold instead if you are unsure.' : 'There is nothing marked and unpublished.'),
+        hasArrears: arrears.length > 0, arrearsCount: String(arrears.length),
+        arrearsList: arrears.map(r => ({ code: r.code, name: r.name, balance: r.arrearsLabel.split(' overdue')[0] })),
+        confirmLabel: 'Publish ' + (s.excludeOverdue ? marked.length - arrears.length : marked.length) + ' results',
+      };
+      out.confirmPublishAll = () => {
+        const edits = Object.assign({}, s.resultEdits);
+        let n = 0;
+        marked.forEach(r => { if (s.excludeOverdue && r.arrears) { edits[a.id + '|' + r.code] = 'Withheld'; } else { edits[a.id + '|' + r.code] = 'Published'; n++; } });
+        this.setState({ resultEdits: edits, publishOpen: false });
+        this.toast(n + ' results published.');
+      };
+    } else { out.m = { rows: [], filters: [] }; out.pub = {}; out.confirmPublishAll = () => {}; }
+    out.publishOpen = s.publishOpen;
+    out.openPublishAll = () => this.setState({ publishOpen: true });
+    out.closePublish = () => this.setState({ publishOpen: false });
+    out.excludeOverdue = s.excludeOverdue;
+    out.toggleExclude = e => this.setState({ excludeOverdue: e.target.checked });
+
+    // payment dialog
+    out.payOpen = s.payOpen;
+    out.openPay = () => this.setState({ payOpen: true, payAmount: '', payRef: '' });
+    out.closePay = () => this.setState({ payOpen: false });
+    out.payAmount = s.payAmount; out.payRef = s.payRef; out.payDate = s.payDate;
+    out.setPayAmount = e => this.setState({ payAmount: e.target.value });
+    out.setPayRef = e => this.setState({ payRef: e.target.value });
+    out.setPayDate = e => this.setState({ payDate: e.target.value });
+    if (s.selected) {
+      const st = this.student(s.selected);
+      const bal = this.balanceFor(st);
+      const amt = Number(s.payAmount);
+      const valid = s.payAmount !== '' && !isNaN(amt) && amt > 0;
+      const over = valid && amt > bal;
+      out.pay = {
+        who: st.name + ' · ' + st.code, outstanding: this.money(bal),
+        amountBorder: over ? this.alert : this.rule,
+        remainingLine: !valid ? 'Enter an amount to see the remaining balance.' : over ? 'That is ' + this.money(amt - bal) + ' more than the outstanding balance.' : 'Remaining after this payment ' + this.money(bal - amt),
+        remainingColor: over ? this.alert : this.muted,
+        blocked: !valid || over,
+        saveBg: (!valid || over) ? '#98A2B3' : this.ink,
+        saveCursor: (!valid || over) ? 'not-allowed' : 'pointer',
+      };
+      out.savePayment = () => {
+        if (out.pay.blocked) return;
+        const list = (s.payments[st.code] || []).concat([{ date: s.payDate.replace(/\//g, ' ').slice(0, 2) + ' Mar 2026', ref: s.payRef || 'PMT-2026-0042', amount: amt, status: 'Cleared' }]);
+        this.setState({ payments: Object.assign({}, s.payments, { [st.code]: list }), payOpen: false });
+        this.toast('Payment recorded. ' + this.money(amt) + ' · ' + (s.payRef || 'PMT-2026-0042'));
+      };
+    } else { out.pay = {}; out.savePayment = () => {}; }
+
+    // programmes
+    out.programmeRows = this.programmes.map(p => ({
+      code: p.code, name: p.name, fee: this.money(p.fee), due: p.window, modules: String(p.modules),
+      enrolled: String(this.studentsRaw.filter(x => x.prog === p.code && x.status !== 'Withdrawn').length),
+      editFee: () => this.setState({ feeProg: p.code, feeValue: String(p.fee) }),
+    }));
+    out.feeDialogOpen = !!s.feeProg;
+    const fprog = this.programmes.find(p => p.code === s.feeProg);
+    out.feeDialog = fprog ? {
+      name: fprog.name + ' (' + fprog.code + ')', value: s.feeValue,
+      warning: 'Changing this fee affects new students only. ' + this.studentsRaw.filter(x => x.prog === fprog.code).length + ' existing students keep their current fee of ' + this.money(fprog.fee) + '.',
+    } : {};
+    out.setFeeValue = e => this.setState({ feeValue: e.target.value });
+    out.closeFeeDialog = () => this.setState({ feeProg: null });
+    out.saveFee = () => { this.setState({ feeProg: null }); this.toast('Programme fee changed for new students.'); };
+
+    // ledger
+    out.paySearch = s.paySearch;
+    out.setPaySearch = e => this.setState({ paySearch: e.target.value });
+    const lq = s.paySearch.trim().toLowerCase();
+    const ledger = [];
+    this.studentsRaw.forEach(st => this.paymentsFor(st).forEach(p => ledger.push({
+      date: p.date, student: st.name, ref: p.ref, amount: this.money(p.amount), status: p.status,
+      color: p.status === 'Reversed' ? this.alert : this.muted,
+      strike: p.status === 'Reversed' ? 'line-through' : 'none',
+    })));
+    out.ledger = ledger.filter(p => !lq || (p.ref + ' ' + p.student).toLowerCase().includes(lq));
+    out.noLedger = out.ledger.length === 0;
+    out.ledgerEmpty = 'No payments match “' + s.paySearch + '”. References look like PMT-2026-0031.';
+
+    // student view
+    out.showOverview = !isStaff && s.studentTab === 'overview';
+    out.showStudentAssessments = !isStaff && s.studentTab === 'assessments';
+    out.showMarksheet = !isStaff && s.studentTab === 'marksheet';
+    out.goStudentAssessments = () => this.setState({ studentTab: 'assessments' });
+    {
+      const st = this.student(s.viewingStudent) || this.studentsRaw[0];
+      const dr = this.decorate(st);
+      const p = this.programmes.find(x => x.code === st.prog);
+      const mine = this.assessments.filter(a => a.prog === st.prog && a.rows[st.code]);
+      const paid = this.paidFor(st);
+      const cards = mine.map(a => {
+        const r = this.subOf(a.id, st.code);
+        const submitted = !!r.at;
+        const up = s.uploading === a.id + '|' + st.code;
+        const rej = s.uploads[a.id + '|' + st.code + '|rejected'];
+        return {
+          title: a.title, module: a.module, deadline: a.deadline,
+          border: !a.closed && !submitted ? this.ink : this.rule,
+          opacity: a.closed && !submitted ? 0.7 : 1,
+          stateLabel: submitted ? (r.late ? '⚠ Submitted late' : '✓ Submitted') : a.closed ? 'Deadline passed' : 'Due ' + a.relative,
+          stateColor: submitted ? (r.late ? this.alert : '#067647') : a.closed ? this.muted : this.ink,
+          showSubmitted: submitted,
+          file: (r.file || 'file') === 'pdf' ? 'coursework.pdf' : 'coursework.' + (r.file || 'file'),
+          submittedLine: r.late ? 'Submitted ' + r.late.replace(' late', '') + ' after the deadline' : 'Submitted ' + r.at,
+          lateColor: r.late ? this.alert : this.muted,
+          canReplace: submitted && !a.closed,
+          replaceNote: a.replaceUntil ? 'You can replace this until ' + a.replaceUntil + '.' : '',
+          replace: () => this.toast('Replacing a submission creates Attempt 2. Confirm to continue.'),
+          showUpload: !submitted && !a.closed,
+          showClosedMissing: !submitted && a.closed,
+          uploading: up, progress: s.progress + '%', progressLabel: 'Uploading coursework.pdf · ' + s.progress + '%',
+          rejected: !!rej, rejectMessage: rej || '',
+          upload: () => this.startUpload(a.id, st.code),
+        };
+      });
+      const published = [], withheld = [];
+      this.assessments.filter(a => a.rows[st.code]).forEach(a => {
+        const g = this.gradeOf(a.id, st.code);
+        const stt = this.stateOf(a.id, st.code);
+        if (g === '') return;
+        if (stt === 'Published') {
+          const cls = this.classify(g);
+          const fg = Number(g) >= 70 ? '#067647' : Number(g) >= 50 ? '#175CD3' : this.alert;
+          published.push({ title: a.title, module: a.module, grade: g, classification: cls, publishedOn: (a.rows[st.code].pub || '14 March 2026'), pillFg: fg, pillBg: fg + '1A', pillBorder: fg + '4D' });
+        } else if (stt === 'Withheld') {
+          withheld.push({ title: a.title, module: a.module, reason: (a.rows[st.code].reason || 'Withheld by the Registry.') });
+        }
+      });
+      const avg = published.length ? published.reduce((x, r) => x + Number(r.grade), 0) / published.length : 0;
+      const nextA = mine.filter(a => !a.closed && !this.subOf(a.id, st.code).at)[0];
+      out.v = {
+        name: st.name, code: st.code, subline: st.code + ' · ' + p.name + ' · Year ' + st.year,
+        feeLine: this.money(paid) + ' paid of ' + this.money(st.fee),
+        paidPct: Math.round((paid / st.fee) * 100) + '%',
+        barColor: dr.overdue ? this.alert : paid >= st.fee ? '#067647' : this.ink,
+        feeStatus: paid >= st.fee ? 'Paid in full' : this.money(st.fee - paid) + ' outstanding · due ' + st.due,
+        overdue: dr.overdue,
+        overdueBody: dr.balance + ' was due ' + st.due + ', ' + st.daysOver + ' days ago.',
+        hasNext: !!nextA, noNext: !nextA,
+        nextTitle: nextA ? nextA.title + ' · ' + nextA.module : '',
+        nextMeta: nextA ? 'Due ' + nextA.relative + ' · ' + nextA.deadline + ' · not yet submitted' : '',
+        recent: this.assessments.filter(a => a.rows[st.code]).slice(0, 3).map(a => {
+          const g = this.gradeOf(a.id, st.code), stt = this.stateOf(a.id, st.code);
+          const pubd = stt === 'Published' && g !== '';
+          return { title: a.title, grade: pubd ? g : '—', label: pubd ? this.classify(g) : stt === 'Withheld' ? 'Withheld' : 'Not published', color: pubd ? this.muted : stt === 'Withheld' ? this.alert : this.muted };
+        }),
+        cards, published, noPublished: published.length === 0,
+        withheld, hasWithheld: withheld.length > 0,
+        hasAverage: published.length > 0, average: avg.toFixed(1), averageClass: this.classify(avg),
+        averageNote: 'Across ' + published.length + ' published ' + (published.length === 1 ? 'result' : 'results') + '. Withheld and unmarked work is excluded.',
+      };
+    }
+
+    out.toast = s.toast; out.hasToast = !!s.toast;
+    out.toastRight = isStaff ? '24px' : 'auto';
+    out.toastLeft = isStaff ? 'auto' : '50%';
+    out.toastTransform = isStaff ? 'none' : 'translateX(-50%)';
+    out.toastBorder = /can't|must|Fix/.test(s.toast || '') ? this.alert : this.ink;
+    return out;
+  }
+
+  startUpload(aid, code) {
+    const k = aid + '|' + code;
+    this.setState({ uploading: k, progress: 0, uploads: Object.assign({}, this.state.uploads, { [k + '|rejected']: null }) });
+    let n = 0;
+    clearInterval(this._u);
+    this._u = setInterval(() => {
+      n += 20;
+      if (n >= 100) {
+        clearInterval(this._u);
+        this.setState({
+          uploading: null, progress: 100,
+          uploads: Object.assign({}, this.state.uploads, { [k]: { at: '14 Mar 16:40', file: 'pdf', attempt: 'Attempt 1 of 1' } }),
+        });
+        this.toast('Submission received. 14 Mar 16:40');
+      } else this.setState({ progress: n });
+    }, 180);
+  }
+}
+
+</script>
+</body>
+</html>
