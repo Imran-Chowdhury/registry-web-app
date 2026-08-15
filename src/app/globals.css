@@ -1,26 +1,119 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/*
+  Design tokens — DESIGN.md §2.
+
+  The governing rule: colour means state, never emphasis. There is no brand colour and
+  no accent. Primary buttons are ink. The only saturated values below are the five
+  status colours, so every coloured pixel on a screen of 40 students is information.
+
+  No dark mode: this is an internal tool specified at 1440px on a light ground, and a
+  second palette would double the surface where "colour means state" can drift.
+*/
+@theme {
+  /* Neutrals */
+  --color-ink: #101828; /* text, primary buttons, header bar */
+  --color-paper: #ffffff; /* card and table backgrounds */
+  --color-surface: #f5f6f8; /* page background, table header row */
+  --color-rule: #e4e7ec; /* hairlines, borders, dividers */
+  --color-muted: #667085; /* secondary text, labels, placeholder */
+
+  /* Status — the only saturated colours in the product */
+  --color-enrolled: #067647;
+  --color-deferred: #b54708;
+  --color-withdrawn: #667085;
+  --color-completed: #175cd3;
+  --color-alert: #b42318; /* overdue, late, withheld, destructive */
+
+  /* Type — Inter Tight for headings, Inter for UI, IBM Plex Mono for data */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-inter-tight), var(--font-inter), ui-sans-serif, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+
+  /* Scale: 12 / 13 / 14 / 16 / 20 / 28. Staff body 14, student body 16, tables 13. */
+  --text-xs: 0.75rem; /* 12 — labels, captions, uppercase eyebrows */
+  --text-xs--line-height: 1rem;
+  --text-sm: 0.8125rem; /* 13 — table cells */
+  --text-sm--line-height: 1.125rem;
+  --text-base: 0.875rem; /* 14 — staff body */
+  --text-base--line-height: 1.25rem;
+  --text-lg: 1rem; /* 16 — student body */
+  --text-lg--line-height: 1.5rem;
+  --text-xl: 1.25rem; /* 20 — record card, page titles */
+  --text-xl--line-height: 1.625rem;
+  --text-2xl: 1.75rem; /* 28 — stat tiles, marksheet grades */
+  --text-2xl--line-height: 2.125rem;
+
+  /* Radius: nothing rounder than this. */
+  --radius-control: 4px; /* inputs, buttons */
+  --radius-card: 6px; /* cards, tables, dialogs */
+
+  /* Borders over shadows. One shadow token, for dialogs and dropdowns only. */
+  --shadow-overlay:
+    0 12px 24px -8px rgb(16 24 40 / 0.16), 0 2px 6px -2px rgb(16 24 40 / 0.08);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+@layer base {
+  html {
+    /* Staff density baseline; student screens opt up to 16px locally. */
+    font-size: 16px;
+  }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  body {
+    background-color: var(--color-surface);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    line-height: var(--text-base--line-height);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Identifiers, money, dates and grades align down the column so a mismatched digit
+     is visible without reading. */
+  code,
+  kbd,
+  pre,
+  samp,
+  .font-mono {
+    font-variant-numeric: tabular-nums;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.011em;
+  }
+
+  /* Ink focus ring, consistent across every primitive. */
+  :focus-visible {
+    outline: 2px solid var(--color-ink);
+    outline-offset: 2px;
+  }
+
+  ::placeholder {
+    color: var(--color-muted);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer utilities {
+  /* Motion budget: 120ms on interactive elements, nothing else. This is a tool people
+     use for six hours a day. */
+  .transition-control {
+    transition-property: color, background-color, border-color, opacity, box-shadow;
+    transition-duration: 120ms;
+    transition-timing-function: ease-out;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
