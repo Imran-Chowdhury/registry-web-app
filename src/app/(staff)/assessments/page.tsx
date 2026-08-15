@@ -1,14 +1,22 @@
+import Link from 'next/link';
+
 import { PageHeader } from '@/components/shared/page-header';
-import { EmptyState } from '@/components/ui';
+import { buttonClasses } from '@/components/ui';
+import { AssessmentList } from '@/features/assessments';
 
 export default function AssessmentsPage() {
   return (
     <>
-      <PageHeader title="Assessments" description="Deadlines, submissions, and marking." />
-      <EmptyState
-        title="Assessments arrive in Phase 4."
-        description="Submission upload and late flagging land with them; marking and publishing follow in Phase 5."
+      <PageHeader
+        title="Assessments"
+        description="Deadlines, submissions, and what still needs marking."
+        action={
+          <Link href="/assessments/new" className={buttonClasses('primary', 'md')}>
+            + New assessment
+          </Link>
+        }
       />
+      <AssessmentList />
     </>
   );
 }

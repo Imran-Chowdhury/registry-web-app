@@ -38,24 +38,24 @@ patterns that already exist by then.
 **Goal:** an empty app that talks to Postgres, with the vocabulary in place.
 **Budget:** 2–3 hours.
 
-- [ ] `create-next-app` — TypeScript, App Router, Tailwind, `src/`, ESLint
-- [ ] Postgres running locally; `DATABASE_URL` set
-- [ ] `prisma init`, write full `schema.prisma` per CLAUDE.md §6 — **all models at once**,
+- [x] `create-next-app` — TypeScript, App Router, Tailwind, `src/`, ESLint
+- [x] Postgres running locally; `DATABASE_URL` set
+- [x] `prisma init`, write full `schema.prisma` per CLAUDE.md §6 — **all models at once**,
       not incrementally. Schema churn is the most expensive kind of rework here
-- [ ] `prisma migrate dev --name init`
-- [ ] `lib/db.ts` — singleton with globalThis guard
-- [ ] `lib/env.ts` — Zod-validated env
-- [ ] `lib/money.ts` — `toMinor`, `fromMinor`, `formatMoney` (USD cents)
-- [ ] `lib/errors.ts` — `AppError`, `NotFoundError`, `ForbiddenError`, `ConflictError`
-- [ ] `lib/api-response.ts` — `ok()` / `fail()` envelope
-- [ ] `lib/student-id.ts` — `SMS-YYYY-NNNN` via transaction on `StudentCodeCounter`
-- [ ] `lib/utils.ts` — `cn()` (clsx + tailwind-merge)
-- [ ] Tailwind theme: the token palette from DESIGN.md §2
-- [ ] Fonts via `next/font`: Inter, Inter Tight, IBM Plex Mono
-- [ ] UI primitives in `components/ui/`: `Button`, `Input`, `Select`, `Textarea`,
+- [x] `prisma migrate dev --name init`
+- [x] `lib/db.ts` — singleton with globalThis guard
+- [x] `lib/env.ts` — Zod-validated env
+- [x] `lib/money.ts` — `toMinor`, `fromMinor`, `formatMoney` (USD cents)
+- [x] `lib/errors.ts` — `AppError`, `NotFoundError`, `ForbiddenError`, `ConflictError`
+- [x] `lib/api-response.ts` — `ok()` / `fail()` envelope
+- [x] `lib/student-id.ts` — `SMS-YYYY-NNNN` via transaction on `StudentCodeCounter`
+- [x] `lib/utils.ts` — `cn()` (clsx + tailwind-merge)
+- [x] Tailwind theme: the token palette from DESIGN.md §2
+- [x] Fonts via `next/font`: Inter, Inter Tight, IBM Plex Mono
+- [x] UI primitives in `components/ui/`: `Button`, `Input`, `Select`, `Textarea`,
       `Badge`, `Card`, `Table`, `Dialog`, `Toast`, `Skeleton`, `EmptyState`
-- [ ] `.env.example` and `.gitignore` (`.env`, `uploads/`)
-- [ ] First commit
+- [x] `.env.example` and `.gitignore` (`.env`, `uploads/`)
+- [x] First commit
 
 **Done when:** `npm run dev` serves a blank page, `prisma studio` shows the tables, and a
 scratch page renders every primitive.
@@ -70,15 +70,15 @@ scratch page renders every primitive.
 **Goal:** you can switch between Staff and Student and the server knows who you are.
 **Budget:** 1.5–2 hours.
 
-- [ ] `lib/viewer.ts` — `getViewer()` reading httpOnly cookies
-- [ ] `setViewer` Server Action — writes cookies, `revalidatePath('/')`
-- [ ] `DemoBanner` component per DESIGN.md §3 (role select + student select)
-- [ ] Route groups `(staff)` and `(student)` with their layouts and nav
-- [ ] `app/providers.tsx` — QueryClientProvider with defaults from
+- [x] `lib/viewer.ts` — `getViewer()` reading httpOnly cookies
+- [x] `setViewer` Server Action — writes cookies, `revalidatePath('/')`
+- [x] `DemoBanner` component per DESIGN.md §3 (role select + student select)
+- [x] Route groups `(staff)` and `(student)` with their layouts and nav
+- [x] `app/providers.tsx` — QueryClientProvider with defaults from
       `lib/query-client.ts` (`staleTime: 60_000`, `refetchOnWindowFocus: false`)
-- [ ] Toast provider mounted
-- [ ] `queryClient.clear()` fires on viewer change
-- [ ] Redirect: staff routes accessed as a student → student home, and vice versa
+- [x] Toast provider mounted
+- [x] `queryClient.clear()` fires on viewer change
+- [x] Redirect: staff routes accessed as a student → student home, and vice versa
 
 **Done when:** switching to a student and back changes the nav and layout, and
 `getViewer()` returns the right identity server-side. The student dropdown can be
@@ -95,30 +95,30 @@ switch is solid; debugging it later while three features depend on it is miserab
 **Budget:** 4–5 hours.
 
 **Server**
-- [ ] `student.repo.ts` — `findMany` (search + filters), `findById`, `create`, `update`,
+- [x] `student.repo.ts` — `findMany` (search + filters), `findById`, `create`, `update`,
       `updateStatus`
-- [ ] `student.service.ts` — authorisation, DTO mapping, code generation, **fee assignment
+- [x] `student.service.ts` — authorisation, DTO mapping, code generation, **fee assignment
       created in the same transaction**, status change written to `StatusChange`
-- [ ] `schema.ts` — Zod for create/update; shared with the form
-- [ ] `types.ts` — `StudentListItem`, `StudentDetail` DTOs
-- [ ] Route handlers: `GET/POST /api/students`, `GET/PATCH /api/students/[id]`
+- [x] `schema.ts` — Zod for create/update; shared with the form
+- [x] `types.ts` — `StudentListItem`, `StudentDetail` DTOs
+- [x] Route handlers: `GET/POST /api/students`, `GET/PATCH /api/students/[id]`
 
 **Staff UI**
-- [ ] Students list — table, search, programme + status filters, result count
-- [ ] Overdue red left border and days-overdue line (balance comes from Phase 3; render
+- [x] Students list — table, search, programme + status filters, result count
+- [x] Overdue red left border and days-overdue line (balance comes from Phase 3; render
       the column now, populate it then)
-- [ ] Withdrawn rows at 60% opacity
-- [ ] Add student form — live programme fee preview, disabled code preview field
-- [ ] Edit student; status change confirm with optional reason
-- [ ] Student detail record card header + tab shell (tabs empty for now)
+- [x] Withdrawn rows at 60% opacity
+- [x] Add student form — live programme fee preview, disabled code preview field
+- [x] Edit student; status change confirm with optional reason
+- [x] Student detail record card header + tab shell (tabs empty for now)
 
 **Student UI**
-- [ ] Overview header: name, code, programme, year
+- [x] Overview header: name, code, programme, year
 
 **Client**
-- [ ] `api/keys.ts` factory, `useStudents`, `useStudent`, `useCreateStudent`,
+- [x] `api/keys.ts` factory, `useStudents`, `useStudent`, `useCreateStudent`,
       `useUpdateStudent`
-- [ ] Loading skeleton, empty state, error state on the list
+- [x] Loading skeleton, empty state, error state on the list
 
 **Done when:** you can create a student from the UI, it gets a code and a fee row, it
 appears in the list, search and filters work, and the student dropdown in the demo banner
@@ -135,23 +135,23 @@ layering feels wrong, fix it here — not after three more features copy the mis
 **Budget:** 3–4 hours.
 
 **Server**
-- [ ] `fee.repo.ts`, `payment.repo.ts`
-- [ ] `fee.service.ts` — outstanding calculation, overdue derivation (days overdue),
+- [x] `fee.repo.ts`, `payment.repo.ts`
+- [x] `fee.service.ts` — outstanding calculation, overdue derivation (days overdue),
       programme-fee snapshot on assignment
-- [ ] `payment.service.ts` — record payment, reject over-payment, unique reference (409 on
+- [x] `payment.service.ts` — record payment, reject over-payment, unique reference (409 on
       duplicate), reversal creates a counter-entry
-- [ ] `GET/POST /api/payments`, `GET /api/students/[id]/fees`
+- [x] `GET/POST /api/payments`, `GET /api/students/[id]/fees`
 
 **Staff UI**
-- [ ] Student detail → Fees tab: fee line, payments ledger, running outstanding
-- [ ] Reversed payments struck through with a `REVERSED` tag
-- [ ] Record payment dialog with live "remaining after this payment"
-- [ ] Balance + overdue columns now live on the students list
-- [ ] Payments ledger screen *(cut candidate)*
+- [x] Student detail → Fees tab: fee line, payments ledger, running outstanding
+- [x] Reversed payments struck through with a `REVERSED` tag
+- [x] Record payment dialog with live "remaining after this payment"
+- [x] Balance + overdue columns now live on the students list
+- [x] Payments ledger screen *(cut candidate)*
 
 **Student UI**
-- [ ] Overview fee panel: paid-of-total, progress bar
-- [ ] Persistent overdue alert block with amount, due date, days overdue, next action
+- [x] Overview fee panel: paid-of-total, progress bar
+- [x] Persistent overdue alert block with amount, due date, days overdue, next action
 
 **Done when:** recording a partial payment updates the balance everywhere, a duplicate
 reference is rejected with a clear message, and a backdated student shows as overdue in
@@ -165,26 +165,26 @@ the list, the student view, and (later) the dashboard.
 **Budget:** 4–5 hours. The riskiest phase — file upload is where time disappears.
 
 **Server**
-- [ ] `lib/storage.ts` — local disk adapter, `uploads/{assessmentId}/{studentId}/`
-- [ ] MIME + magic-byte validation, 10MB cap, filename sanitisation
-- [ ] `assessment.repo.ts` / `service.ts` — CRUD, per-assessment counts
-- [ ] `submission.repo.ts` / `service.ts` — versioned attempts, block resubmit after
+- [x] `lib/storage.ts` — local disk adapter, `uploads/{assessmentId}/{studentId}/`
+- [x] MIME + magic-byte validation, 10MB cap, filename sanitisation
+- [x] `assessment.repo.ts` / `service.ts` — CRUD, per-assessment counts
+- [x] `submission.repo.ts` / `service.ts` — versioned attempts, block resubmit after
       deadline, block for `WITHDRAWN` students, `isLate` computed at read time
-- [ ] Upload Server Action; download route handler with `viewer` check
-- [ ] `GET/POST /api/assessments`, `GET/POST /api/submissions`
+- [x] Upload Server Action; download route handler with `viewer` check
+- [x] `GET/POST /api/assessments`, `GET/POST /api/submissions`
 
 **Staff UI**
-- [ ] Assessments list with deadline + relative time and submitted/marked ratios
-- [ ] New assessment form
-- [ ] Assessment detail: submission table, counts strip, filter chips
+- [x] Assessments list with deadline + relative time and submitted/marked ratios
+- [x] New assessment form
+- [x] Assessment detail: submission table, counts strip, filter chips
       (All / Late / Missing / Unmarked)
-- [ ] Missing submissions rendered as rows
-- [ ] Late flag with delay shown; `att. 2` indicator on resubmissions
+- [x] Missing submissions rendered as rows
+- [x] Late flag with delay shown; `att. 2` indicator on resubmissions
 
 **Student UI**
-- [ ] Assessments list, four card states per DESIGN.md §5.2
-- [ ] Upload zone: accepted types and cap stated up front, progress, specific errors
-- [ ] `Replace submission` before deadline only, with the cutoff stated
+- [x] Assessments list, four card states per DESIGN.md §5.2
+- [x] Upload zone: accepted types and cap stated up front, progress, specific errors
+- [x] `Replace submission` before deadline only, with the cutoff stated
 
 **Done when:** a student uploads, replaces before the deadline, and a late submission is
 flagged with the exact delay in both views. A withdrawn student cannot submit.

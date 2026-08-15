@@ -27,7 +27,7 @@ export default async function StudentsPage() {
     <>
       <PageHeader
         title="Students"
-        description="Enrolment records, fees, and status."
+        description="Enrollment records, fees, and status."
         action={
           <Link href="/students/new" className={buttonClasses('primary', 'md')}>
             + Add student
