@@ -1,7 +1,10 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
+// Student Management System — Registry module.
+// Full schema written in one pass (PLAN.md Phase 0): schema churn mid-build is the
+// most expensive rework on this project.
+//
+// Money is always an integer number of USD cents (`*Minor`). Never Float, never Decimal.
+// Derived values — outstanding balance, lateness, classification — are computed at read
+// time in the service layer and deliberately absent here.
 
 generator client {
   provider = "prisma-client"
@@ -10,4 +13,178 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+enum EnrolmentStatus {
+  ENROLLED
+  DEFERRED
+  WITHDRAWN
+  COMPLETED
+}
+
+enum ResultStatus {
+  DRAFT
+  PUBLISHED
+  WITHHELD
+}
+
+enum PaymentStatus {
+  COMPLETED
+  REVERSED
+}
+
+model Programme {
+  id         String   @id @default(cuid())
+  code       String   @unique // "CSE", "BBA"
+  name       String
+  feeMinor   Int // source of truth for new fee assignments: CSE 10000, BBA 5000
+  feeDueDays Int      @default(30) // days from student creation to the fee due date
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  modules  Module[]
+  students Student[]
+}
+
+model Module {
+  id        String   @id @default(cuid())
+  code      String   @unique // "CSE-201"
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  programmes  Programme[]
+  assessments Assessment[]
+}
+
+model Student {
+  id           String          @id @default(cuid())
+  studentCode  String          @unique // SMS-2025-0001
+  fullName     String
+  email        String          @unique
+  dateOfBirth  DateTime
+  programmeId  String
+  academicYear Int // 1, 2, 3
+  intakeYear   Int // 2025 — drives studentCode
+  status       EnrolmentStatus @default(ENROLLED)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  programme     Programme       @relation(fields: [programmeId], references: [id])
+  fees          FeeAssignment[]
+  submissions   Submission[]
+  results       Result[]
+  statusHistory StatusChange[]
+
+  @@index([status, programmeId])
+  @@index([fullName])
+}
+
+// Registry teams need an audit trail: a student is never deleted, only transitioned.
+model StatusChange {
+  id         String           @id @default(cuid())
+  studentId  String
+  fromStatus EnrolmentStatus?
+  toStatus   EnrolmentStatus
+  reason     String?
+  changedAt  DateTime         @default(now())
+
+  student Student @relation(fields: [studentId], references: [id])
+
+  @@index([studentId, changedAt])
+}
+
+model FeeAssignment {
+  id          String   @id @default(cuid())
+  studentId   String
+  description String // "Tuition 2025/26"
+  // Snapshot of Programme.feeMinor at creation. Changing a programme's fee must not
+  // silently rewrite what existing students owe.
+  amountMinor Int
+  dueDate     DateTime // student.createdAt + Programme.feeDueDays
+  waivedMinor Int      @default(0) // bursary / scholarship
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  student  Student   @relation(fields: [studentId], references: [id])
+  payments Payment[]
+
+  @@index([studentId, dueDate])
+}
+
+model Payment {
+  id          String        @id @default(cuid())
+  feeId       String
+  amountMinor Int
+  paidAt      DateTime
+  reference   String        @unique // double-entry guard: duplicate returns 409
+  status      PaymentStatus @default(COMPLETED)
+  reversalOf  String? // money rows are never deleted; corrections are counter-entries
+  note        String?
+  createdAt   DateTime      @default(now())
+
+  fee FeeAssignment @relation(fields: [feeId], references: [id])
+
+  @@index([feeId, paidAt])
+}
+
+model Assessment {
+  id          String   @id @default(cuid())
+  title       String
+  moduleId    String
+  deadline    DateTime
+  maxAttempts Int      @default(0) // 0 = unlimited before the deadline
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  module      Module       @relation(fields: [moduleId], references: [id])
+  submissions Submission[]
+  results     Result[]
+
+  @@index([deadline])
+}
+
+model Submission {
+  id           String   @id @default(cuid())
+  studentId    String
+  assessmentId String
+  attempt      Int // versioned, never overwritten — earlier attempts stay for audit
+  fileName     String // original name, for display
+  filePath     String // generated storage path
+  fileSize     Int
+  mimeType     String
+  submittedAt  DateTime @default(now())
+
+  student    Student    @relation(fields: [studentId], references: [id])
+  assessment Assessment @relation(fields: [assessmentId], references: [id])
+
+  @@unique([studentId, assessmentId, attempt])
+  @@index([assessmentId, submittedAt])
+}
+
+model Result {
+  id             String       @id @default(cuid())
+  studentId      String
+  assessmentId   String
+  grade          Int? // 0–100, null until marked. Classification is computed, never stored.
+  status         ResultStatus @default(DRAFT)
+  withheldReason String?
+  publishedAt    DateTime?
+  markedBy       String?
+  note           String? // e.g. "absent, recorded as 0"
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  student    Student    @relation(fields: [studentId], references: [id])
+  assessment Assessment @relation(fields: [assessmentId], references: [id])
+
+  @@unique([studentId, assessmentId])
+  @@index([assessmentId, status])
+}
+
+// Safe SMS-YYYY-NNNN generation. Incremented inside a transaction so two concurrent
+// creates cannot collide — never count() + 1.
+model StudentCodeCounter {
+  year      Int @id
+  lastValue Int @default(0)
 }
