@@ -1,12 +1,15 @@
 import { EmptyState } from '@/components/ui';
-import { studentService } from '@/features/students';
+import { StudentFeeSummary } from '@/features/fees';
+import { feeService } from '@/features/fees/server';
+import { studentService } from '@/features/students/server';
 import { getViewer } from '@/lib/viewer';
 
 export default async function StudentOverviewPage() {
   const viewer = await getViewer();
   // Scoped from the cookie-derived viewer. No id is accepted from the client, and the
-  // service refuses anything that is not this student's own record.
+  // services refuse anything that is not this student's own record.
   const student = await studentService.getSelf(viewer);
+  const fees = await feeService.listForStudent(viewer, student.id);
 
   return (
     <>
@@ -17,10 +20,15 @@ export default async function StudentOverviewPage() {
         </p>
       </header>
 
-      <EmptyState
-        title="Your fees and coursework appear here."
-        description="The fee panel arrives in Phase 3 and the assessment summary in Phase 4."
-      />
+      <StudentFeeSummary fees={fees} />
+
+      <section className="mt-8">
+        <h2 className="mb-3 text-base font-semibold">Coursework</h2>
+        <EmptyState
+          title="Your assessments appear here."
+          description="Deadlines and submissions arrive in Phase 4; results in Phase 5."
+        />
+      </section>
     </>
   );
 }
