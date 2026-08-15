@@ -67,6 +67,51 @@ export function relativeToNow(value: Date | string, now: Date = new Date()): str
   return isAfter(date, now) ? `in ${distance}` : `${distance} ago`;
 }
 
+/**
+ * "2 days 4 hours" — the delay on a late submission.
+ *
+ * Shown rather than a bare "late" flag: two hours after the deadline and two weeks after
+ * it are different conversations, and the staff queue should not make someone open a
+ * record to tell them apart.
+ */
+export function formatDelay(fromValue: Date | string, toValue: Date | string): string {
+  const milliseconds = toDate(toValue).getTime() - toDate(fromValue).getTime();
+  if (milliseconds <= 0) return '';
+
+  const totalMinutes = Math.floor(milliseconds / 60_000);
+  const days = Math.floor(totalMinutes / (60 * 24));
+  const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
+  const minutes = totalMinutes % 60;
+
+  if (days > 0) return hours > 0 ? `${days}d ${hours}h` : `${days}d`;
+  if (hours > 0) return minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`;
+  return `${Math.max(1, minutes)}m`;
+}
+
+/** The same delay in words, for the student's own view. */
+export function formatDelayLong(
+  fromValue: Date | string,
+  toValue: Date | string,
+): string {
+  const milliseconds = toDate(toValue).getTime() - toDate(fromValue).getTime();
+  if (milliseconds <= 0) return '';
+
+  const totalMinutes = Math.floor(milliseconds / 60_000);
+  const days = Math.floor(totalMinutes / (60 * 24));
+  const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
+  const minutes = totalMinutes % 60;
+
+  const parts: string[] = [];
+  if (days > 0) parts.push(`${days} day${days === 1 ? '' : 's'}`);
+  if (hours > 0) parts.push(`${hours} hour${hours === 1 ? '' : 's'}`);
+  if (parts.length === 0) {
+    const shown = Math.max(1, minutes);
+    parts.push(`${shown} minute${shown === 1 ? '' : 's'}`);
+  }
+
+  return parts.join(' ');
+}
+
 function toDate(value: Date | string): Date {
   return value instanceof Date ? value : new Date(value);
 }
