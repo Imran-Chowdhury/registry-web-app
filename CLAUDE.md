@@ -48,7 +48,7 @@ modelling, and the README.
 |---|---|---|
 | Framework | **Next.js 15 (App Router)** | Required by brief. TypeScript, `src/` directory |
 | Database | **PostgreSQL** | Required |
-| ORM | **Prisma 6** | Required. `schema.prisma` must be committed |
+| ORM | **Prisma 7.9.1** | Required. `schema.prisma` must be committed |
 | Styling | **Tailwind CSS only** | The brief allows "Tailwind or any component library". No component library for now — see §13 |
 | Server state | **TanStack Query v5** | All API data |
 | Client state | **Zustand** | UI state only |
