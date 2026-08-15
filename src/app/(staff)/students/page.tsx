@@ -3,8 +3,9 @@ import Link from 'next/link';
 
 import { PageHeader } from '@/components/shared/page-header';
 import { buttonClasses } from '@/components/ui';
-import { programmeService } from '@/features/programmes';
-import { studentKeys, studentService } from '@/features/students';
+import { programmeService } from '@/features/programmes/server';
+import { studentKeys } from '@/features/students';
+import { studentService } from '@/features/students/server';
 import { StudentList } from '@/features/students/components/student-list';
 import { makeQueryClient } from '@/lib/query-client';
 import { getViewer } from '@/lib/viewer';

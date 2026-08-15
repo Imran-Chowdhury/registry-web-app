@@ -1,4 +1,4 @@
-import { studentService } from '@/features/students';
+import { studentService } from '@/features/students/server';
 import { fail, ok } from '@/lib/api-response';
 import { getViewer } from '@/lib/viewer';
 

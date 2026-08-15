@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { studentService } from '@/features/students';
+import { studentService } from '@/features/students/server';
 
 import { getViewer } from './viewer';
 

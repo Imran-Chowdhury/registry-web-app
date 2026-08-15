@@ -1,25 +1,15 @@
+import type { FeeSummary } from '@/features/fees';
+
 import type { EnrolmentStatusValue } from './schema';
 
 /**
  * DTOs sent to the client. Prisma models never cross this line — dates are serialised as
  * ISO strings so they survive the server/client boundary intact.
+ *
+ * The balance shape comes from the fees feature through its public surface: one
+ * definition of what a student owes, used by both the list and the fee panel.
  */
-
-/** Derived on every read, never stored. Storing a balance guarantees it goes stale. */
-export type FeeSummary = {
-  feeId: string;
-  description: string;
-  amountMinor: number;
-  waivedMinor: number;
-  paidMinor: number;
-  /** amountMinor − waivedMinor − completed payments. */
-  outstandingMinor: number;
-  dueDate: string;
-  /** outstanding > 0 and the due date has passed. */
-  isOverdue: boolean;
-  /** Whole days past due. Zero when not overdue — a boolean alone hides severity. */
-  daysOverdue: number;
-};
+export type { FeeSummary };
 
 export type StudentListItem = {
   id: string;

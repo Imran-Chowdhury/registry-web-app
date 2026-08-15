@@ -1,7 +1,7 @@
 import 'server-only';
 
-import { programmeService } from '@/features/programmes';
-import { daysOverdue } from '@/lib/dates';
+import { computeFeeSummary } from '@/features/fees';
+import { programmeService } from '@/features/programmes/server';
 import { ConflictError, ForbiddenError, NotFoundError } from '@/lib/errors';
 import { nextStudentCode } from '@/lib/student-id';
 import type { Viewer } from '@/lib/viewer';
@@ -14,7 +14,6 @@ import type {
 } from '../schema';
 import { createStudentSchema, updateStudentSchema, changeStatusSchema } from '../schema';
 import type {
-  FeeSummary,
   StudentDetail,
   StudentListItem,
   StudentListResult,
@@ -191,29 +190,6 @@ function requireStaff(viewer: Viewer): void {
   }
 }
 
-/**
- * Outstanding is computed on every read rather than kept in a column. A stored balance
- * drifts the moment a payment is reversed or a waiver is applied, and reconciling it is
- * exactly the kind of silent error a registry cannot afford.
- */
-function toFeeSummary(fee: StudentListRow['fees'][number]): FeeSummary {
-  const paidMinor = fee.payments.reduce((sum, payment) => sum + payment.amountMinor, 0);
-  const outstandingMinor = fee.amountMinor - fee.waivedMinor - paidMinor;
-  const overdueDays = daysOverdue(fee.dueDate);
-
-  return {
-    feeId: fee.id,
-    description: fee.description,
-    amountMinor: fee.amountMinor,
-    waivedMinor: fee.waivedMinor,
-    paidMinor,
-    outstandingMinor,
-    dueDate: fee.dueDate.toISOString(),
-    isOverdue: outstandingMinor > 0 && overdueDays > 0,
-    daysOverdue: outstandingMinor > 0 ? overdueDays : 0,
-  };
-}
-
 function toListItem(row: StudentListRow): StudentListItem {
   // One fee assignment per student today. `fees` is a list because a programme change
   // will add a second in Phase 3; the earliest is the one a balance column refers to.
@@ -228,7 +204,7 @@ function toListItem(row: StudentListRow): StudentListItem {
     programmeName: row.programme.name,
     academicYear: row.academicYear,
     status: row.status,
-    fee: fee ? toFeeSummary(fee) : null,
+    fee: fee ? computeFeeSummary(withCompletedPaymentsOnly(fee)) : null,
   };
 }
 
@@ -246,6 +222,21 @@ function toDetail(row: StudentDetailRow): StudentDetail {
       reason: entry.reason,
       changedAt: entry.changedAt.toISOString(),
     })),
+  };
+}
+
+/**
+ * The repository already filters to COMPLETED payments; naming that here keeps the
+ * contract with `computeFeeSummary` explicit rather than assumed.
+ */
+function withCompletedPaymentsOnly(fee: StudentListRow['fees'][number]) {
+  return {
+    id: fee.id,
+    description: fee.description,
+    amountMinor: fee.amountMinor,
+    waivedMinor: fee.waivedMinor,
+    dueDate: fee.dueDate,
+    payments: fee.payments,
   };
 }
 

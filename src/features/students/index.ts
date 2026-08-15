@@ -1,6 +1,10 @@
-/** The public surface of the students feature. Nothing imports its internals. */
-
-export { studentService } from './server/student.service';
+/**
+ * The client-safe public surface of the students feature. Nothing imports its internals.
+ *
+ * Services are deliberately absent: they are `server-only`, and a client component
+ * importing a hook from here would otherwise drag them into the browser bundle. Server
+ * code imports them from `./server` instead.
+ */
 
 export {
   ENROLMENT_STATUSES,

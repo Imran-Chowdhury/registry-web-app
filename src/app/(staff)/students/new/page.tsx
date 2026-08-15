@@ -2,7 +2,7 @@ import Link from 'next/link';
 
 import { PageHeader } from '@/components/shared/page-header';
 import { EmptyState } from '@/components/ui';
-import { programmeService } from '@/features/programmes';
+import { programmeService } from '@/features/programmes/server';
 import { NewStudentScreen } from '@/features/students/components/new-student-screen';
 import { getViewer } from '@/lib/viewer';
 
