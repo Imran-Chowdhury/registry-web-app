@@ -5,10 +5,11 @@ import { studentService } from '@/features/students/server';
 import { ForbiddenError } from '@/lib/errors';
 import type { Viewer } from '@/lib/viewer';
 
-import type { DashboardSummary, OverdueAccount, ReadyToPublish } from '../types';
+import type { AccountBalance, DashboardSummary, ReadyToPublish } from '../types';
 
 /** How many rows the overdue panel shows before deferring to the students list. */
 const OVERDUE_PREVIEW_LIMIT = 5;
+const OUTSTANDING_PREVIEW_LIMIT = 3;
 const READY_PREVIEW_LIMIT = 3;
 
 export const dashboardService = {
@@ -30,17 +31,29 @@ export const dashboardService = {
       assessmentService.list(viewer),
     ]);
 
-    const overdueAccounts: OverdueAccount[] = students.students
-      .filter((student) => student.fee?.isOverdue)
+    const owing: AccountBalance[] = students.students
+      .filter((student) => (student.fee?.outstandingMinor ?? 0) > 0)
       .map((student) => ({
         studentId: student.id,
         studentCode: student.studentCode,
         fullName: student.fullName,
         programmeCode: student.programmeCode,
         outstandingMinor: student.fee!.outstandingMinor,
+        dueDate: student.fee!.dueDate,
+        isOverdue: student.fee!.isOverdue,
         daysOverdue: student.fee!.daysOverdue,
-      }))
+      }));
+
+    // Overdue first, worst debt first within it: the oldest debt is the first call.
+    const overdueAccounts = owing
+      .filter((account) => account.isOverdue)
       .sort((a, b) => b.daysOverdue - a.daysOverdue);
+
+    // The fallback when nothing is overdue, ranked by size rather than by age — with no
+    // debt yet late, the largest balance is the one worth chasing first.
+    const topOutstanding = [...owing]
+      .sort((a, b) => b.outstandingMinor - a.outstandingMinor)
+      .slice(0, OUTSTANDING_PREVIEW_LIMIT);
 
     // Withdrawn students keep their fee history but are not who the registry chases
     // today, so they are counted in the money and not in the enrolled headcount.
@@ -79,7 +92,7 @@ export const dashboardService = {
         0,
       ),
       overdueAccounts: overdueAccounts.slice(0, OVERDUE_PREVIEW_LIMIT),
-      nextDueDate: nextDueDate(students.students),
+      topOutstanding,
       lateWork: {
         lateCount: assessments.reduce(
           (total, assessment) => total + assessment.lateCount,
@@ -93,21 +106,3 @@ export const dashboardService = {
     };
   },
 };
-
-/** The soonest fee still to fall due, so the empty state can name a date. */
-function nextDueDate(
-  students: { fee: { outstandingMinor: number; isOverdue: boolean; dueDate: string } | null }[],
-): string | null {
-  const now = Date.now();
-
-  const upcoming = students
-    .map((student) => student.fee)
-    .filter(
-      (fee) =>
-        fee !== null && fee.outstandingMinor > 0 && new Date(fee.dueDate).getTime() > now,
-    )
-    .map((fee) => fee!.dueDate)
-    .sort();
-
-  return upcoming[0] ?? null;
-}

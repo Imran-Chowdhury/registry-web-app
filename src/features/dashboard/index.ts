@@ -8,9 +8,9 @@
  */
 
 export type {
+  AccountBalance,
   DashboardSummary,
   LateWorkSummary,
-  OverdueAccount,
   ReadyToPublish,
 } from './types';
 

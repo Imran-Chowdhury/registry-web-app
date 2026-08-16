@@ -34,20 +34,38 @@ export function TBody({ className, ...props }: HTMLAttributes<HTMLTableSectionEl
 }
 
 export type TrProps = HTMLAttributes<HTMLTableRowElement> & {
-  /** Red left border — overdue accounts and other exceptions. Never a full-row fill. */
+  /** Red left border — the exception itself: overdue, late. */
   flagged?: boolean;
+  /**
+   * A faint red wash for rows that need attention but are not yet exceptions.
+   *
+   * Kept to 5% so it reads as a tint rather than a fill: DESIGN.md §4.2 warns that a
+   * full-strength red row destroys readability at forty of them. Paired with `flagged`
+   * it gives two legible levels — tinted means something is owed, tinted with a border
+   * means it is overdue.
+   */
+  tinted?: boolean;
   /** Withdrawn students stay visible at reduced opacity; records persist. */
   dimmed?: boolean;
   clickable?: boolean;
 };
 
-export function TR({ className, flagged, dimmed, clickable, ...props }: TrProps) {
+export function TR({
+  className,
+  flagged,
+  tinted,
+  dimmed,
+  clickable,
+  ...props
+}: TrProps) {
   return (
     <tr
       className={cn(
         'transition-control',
         flagged && 'border-l-2 border-l-alert',
+        tinted && 'bg-alert/5',
         dimmed && 'opacity-60',
+        // Hover has to win over the tint, or a tinted row stops responding to the cursor.
         clickable && 'cursor-pointer hover:bg-surface',
         className,
       )}

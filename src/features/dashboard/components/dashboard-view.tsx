@@ -2,7 +2,7 @@ import Link from 'next/link';
 
 import { Money } from '@/components/shared/money';
 import { TBody, TD, TH, THead, TR, Table } from '@/components/ui';
-import { formatDate } from '@/lib/dates';
+import { formatDateShort } from '@/lib/dates';
 import { formatMoney } from '@/lib/money';
 
 import type { DashboardSummary } from '../types';
@@ -33,66 +33,100 @@ export function DashboardView({ summary }: { summary: DashboardSummary }) {
         <StatTile value={summary.awaitingMarkingCount} label="awaiting marking" />
       </div>
 
-      <section className="mt-8">
-        <div className="mb-2 flex items-baseline justify-between">
-          <h2 className="text-base font-semibold">Overdue accounts</h2>
-          <Link href="/students" className="text-xs underline underline-offset-2">
-            View all students →
-          </Link>
-        </div>
-
-        {summary.overdueAccounts.length === 0 ? (
-          <p className="rounded-card border border-rule bg-paper px-4 py-3 text-sm text-muted">
-            No overdue accounts.{' '}
-            {summary.nextDueDate
-              ? `Next payment due ${formatDate(summary.nextDueDate)}.`
-              : 'Nothing is outstanding.'}
-          </p>
-        ) : (
-          <Table>
-            <THead>
-              <TR>
-                <TH>Code</TH>
-                <TH>Name</TH>
-                <TH>Programme</TH>
-                <TH numeric>Outstanding</TH>
-                <TH numeric>Overdue</TH>
-              </TR>
-            </THead>
-            <TBody>
-              {/* Sorted by days overdue descending — the oldest debt is the first call. */}
-              {summary.overdueAccounts.map((account) => (
-                <TR key={account.studentId} flagged>
-                  <TD mono>
-                    <Link
-                      href={`/students/${account.studentId}`}
-                      className="underline underline-offset-2"
-                    >
-                      {account.studentCode}
-                    </Link>
-                  </TD>
-                  <TD>{account.fullName}</TD>
-                  <TD mono className="text-muted">
-                    {account.programmeCode}
-                  </TD>
-                  <TD numeric>
-                    <Money alert minor={account.outstandingMinor} />
-                  </TD>
-                  <TD mono numeric className="text-alert">
-                    {account.daysOverdue} days
-                  </TD>
-                </TR>
-              ))}
-            </TBody>
-          </Table>
-        )}
-      </section>
+      <AccountsPanel summary={summary} />
 
       <div className="mt-8 grid gap-4 lg:grid-cols-2">
         <LateWorkPanel summary={summary} />
         <ReadyToPublishPanel summary={summary} />
       </div>
     </>
+  );
+}
+
+/**
+ * Who owes money — the first of the three questions an admin opens this screen to answer.
+ *
+ * Two modes, because "no overdue accounts" is a dead panel on a screen whose job is to
+ * name the next thing worth doing. With nothing overdue it falls back to the largest
+ * balances still to collect, ranked by size rather than by age.
+ *
+ * The heading and the colour change with the mode. Red rows under a heading that says
+ * "outstanding" would read as overdue at a glance, and on this screen a colour that lies
+ * is worse than no colour.
+ */
+function AccountsPanel({ summary }: { summary: DashboardSummary }) {
+  const overdue = summary.overdueAccounts.length > 0;
+  const accounts = overdue ? summary.overdueAccounts : summary.topOutstanding;
+
+  return (
+    <section className="mt-8">
+      <div className="mb-2 flex items-baseline justify-between gap-4">
+        <h2 className="text-base font-semibold">
+          {overdue ? 'Overdue accounts' : 'Largest outstanding balances'}
+        </h2>
+        <Link href="/students" className="text-xs underline underline-offset-2">
+          View all students →
+        </Link>
+      </div>
+
+      {!overdue && accounts.length > 0 && (
+        <p className="mb-2 text-xs text-muted">
+          Nothing is overdue. These are the balances still to collect.
+        </p>
+      )}
+
+      {accounts.length === 0 ? (
+        <p className="rounded-card border border-rule bg-paper px-4 py-3 text-sm text-muted">
+          Every fee is paid in full. Nothing is outstanding.
+        </p>
+      ) : (
+        <Table>
+          <THead>
+            <TR>
+              <TH>Code</TH>
+              <TH>Name</TH>
+              <TH>Programme</TH>
+              <TH numeric>Outstanding</TH>
+              <TH numeric>{overdue ? 'Overdue' : 'Due'}</TH>
+            </TR>
+          </THead>
+          <TBody>
+            {accounts.map((account) => (
+              <TR
+                key={account.studentId}
+                flagged={account.isOverdue}
+                tinted={!account.isOverdue}
+              >
+                <TD mono>
+                  <Link
+                    href={`/students/${account.studentId}`}
+                    className="underline underline-offset-2"
+                  >
+                    {account.studentCode}
+                  </Link>
+                </TD>
+                <TD>{account.fullName}</TD>
+                <TD mono className="text-muted">
+                  {account.programmeCode}
+                </TD>
+                <TD numeric>
+                  <Money alert={account.isOverdue} minor={account.outstandingMinor} />
+                </TD>
+                <TD
+                  mono
+                  numeric
+                  className={account.isOverdue ? 'text-alert' : 'text-muted'}
+                >
+                  {account.isOverdue
+                    ? `${account.daysOverdue} day${account.daysOverdue === 1 ? '' : 's'}`
+                    : formatDateShort(account.dueDate)}
+                </TD>
+              </TR>
+            ))}
+          </TBody>
+        </Table>
+      )}
+    </section>
   );
 }
 

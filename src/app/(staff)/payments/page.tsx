@@ -6,7 +6,7 @@ export default function PaymentsPage() {
     <>
       <PageHeader
         title="Payments"
-        description="Every payment recorded, newest first. Reversals stay on the ledger beside the entry they correct."
+        description="Every payment recorded."
       />
       <PaymentLedgerScreen />
     </>

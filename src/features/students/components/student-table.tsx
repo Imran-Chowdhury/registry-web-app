@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 
 import { Money } from '@/components/shared/money';
 import { TBody, TD, TH, THead, TR, Table } from '@/components/ui';
+import { formatDateShort } from '@/lib/dates';
 
 import type { StudentListItem } from '../types';
 import { StatusBadge } from './status-badge';
@@ -31,14 +32,18 @@ export function StudentTable({ students }: { students: StudentListItem[] }) {
       <TBody>
         {students.map((student) => {
           const overdue = student.fee?.isOverdue ?? false;
+          // Owing but not yet late. Worth seeing without reading the balance column, and
+          // worth distinguishing from overdue rather than colouring both the same.
+          const owing = (student.fee?.outstandingMinor ?? 0) > 0;
 
           return (
             <TR
               key={student.id}
               clickable
-              // A red left border marks the exception without filling the row — a
-              // full-row tint destroys readability at forty rows.
+              // A red left border marks the exception; the tint marks a balance still to
+              // collect. Two levels, so a full-strength fill never has to carry both.
               flagged={overdue}
+              tinted={owing}
               // Withdrawn students stay visible and legible, just clearly inactive.
               // Registry records persist.
               dimmed={student.status === 'WITHDRAWN'}
@@ -59,11 +64,19 @@ export function StudentTable({ students }: { students: StudentListItem[] }) {
                 {student.fee ? (
                   <>
                     <Money minor={student.fee.outstandingMinor} alert={overdue} />
-                    {overdue && (
+                    {overdue ? (
                       <span className="block text-xs text-alert">
                         {student.fee.daysOverdue} day
                         {student.fee.daysOverdue === 1 ? '' : 's'} overdue
                       </span>
+                    ) : (
+                      owing && (
+                        // The tint is never the only carrier: the row says in words what
+                        // the colour hints at.
+                        <span className="block text-xs text-muted">
+                          due {formatDateShort(student.fee.dueDate)}
+                        </span>
+                      )
                     )}
                   </>
                 ) : (

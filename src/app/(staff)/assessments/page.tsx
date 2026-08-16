@@ -9,7 +9,7 @@ export default function AssessmentsPage() {
     <>
       <PageHeader
         title="Assessments"
-        description="Deadlines, submissions, and what still needs marking."
+        description="Deadlines, submissions, and marking."
         action={
           <Link href="/assessments/new" className={buttonClasses('primary', 'md')}>
             + New assessment
