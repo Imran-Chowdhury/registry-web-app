@@ -3,6 +3,7 @@ export { Button, buttonClasses, type ButtonSize, type ButtonVariant } from './bu
 export { Card, CardBody, CardFooter, CardHeader } from './card';
 export { ConfirmDialog, Dialog } from './dialog';
 export { EmptyState } from './empty-state';
+export { FormError } from './form-error';
 export { Field, Input, fieldClasses } from './input';
 export { Select } from './select';
 export { Skeleton, SkeletonTable } from './skeleton';

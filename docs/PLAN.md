@@ -253,6 +253,25 @@ flagged with the exact delay in both views. A withdrawn student cannot submit.
 - **The withhold reason is optional to type and never absent from what the student
   reads.** The dialog opens on a neutral default suited to a correction; blank falls back
   to it server-side. Staff overwrite it when the real reason is arrears or misconduct
+- **Staff can close submissions.** A passed deadline flags late work but never refuses it,
+  so someone has to be able to say "that is everything" before marking can finish.
+  `Assessment.submissionsClosedAt` records when, and the cutoff is separate from the
+  deadline — closing does not move who was late, and reopening is allowed because closing
+  a day early is an easy mistake. Closing does **not** auto-mark non-submitters: a bulk
+  zero would hit deferred students and unrecorded extensions, so the confirm dialog names
+  the count and points at `Record as absent` instead
+- **Dialog errors are shown inside the dialog.** A native `<dialog>` opened with
+  `showModal()` sits in the browser's top layer and paints over any toast, at any
+  z-index — so a duplicate payment reference now reports inline on the field it belongs
+  to. Toasts remain for mutations with no dialog behind them
+- **The payments ledger sorts by entry order, not by `paidAt`.** Recorded payments carry a
+  date-only `paidAt` from a date input while reversals carry a real timestamp, so sorting
+  on it floated every reversal above same-day payments. `createdAt` is the order the
+  registry actually did things, and it keeps a reversal directly above the payment it
+  reverses
+- **No Programmes screen.** Programmes are seeded, per the cut list; a nav entry leading
+  to a screen that only explains its own absence is worse than no entry. The fee-snapshot
+  reasoning it would have carried belongs in the README
 - **No Submissions tab on the student record.** Coursework is read per assessment on the
   marking screen, where the deadline and the rest of the cohort give it meaning
 

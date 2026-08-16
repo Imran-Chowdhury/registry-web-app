@@ -22,7 +22,19 @@ const feeSelect = {
       reversalOf: true,
       note: true,
     },
-    orderBy: [{ paidAt: 'desc' as const }, { id: 'desc' as const }],
+    /*
+      Ordered by when the entry was made, not by the date on it.
+
+      `paidAt` is a banking date: recorded payments carry it at midnight from a date
+      input, while a reversal carries the exact moment it was made. Sorting on it
+      therefore floated every reversal above same-day payments regardless of what
+      happened first. Sorting on `id` as a tie-break was no better — a cuid2 is
+      deliberately not time-sortable, so same-day order was arbitrary.
+
+      `createdAt` is the order the registry actually did things, which is what a ledger
+      is for, and it keeps a reversal directly above the payment it reverses.
+    */
+    orderBy: { createdAt: 'desc' as const },
   },
 } satisfies Prisma.FeeAssignmentSelect;
 

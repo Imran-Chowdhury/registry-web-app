@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-import { Button, Dialog, Field, Input, Textarea } from '@/components/ui';
+import { Button, Dialog, Field, FormError, Input, Textarea } from '@/components/ui';
 
 import { absentFormSchema } from '../schema';
 
@@ -21,12 +21,15 @@ export function AbsentDialog({
   open,
   studentName,
   pending,
+  serverError,
   onClose,
   onConfirm,
 }: {
   open: boolean;
   studentName: string;
   pending: boolean;
+  /** The server's rejection, shown here because a toast cannot be seen behind a modal. */
+  serverError?: string;
   onClose: () => void;
   onConfirm: (input: { grade: number; reason: string }) => void;
 }) {
@@ -74,6 +77,8 @@ export function AbsentDialog({
       }
     >
       <div className="flex flex-col gap-3">
+        {serverError && <FormError>{serverError}</FormError>}
+
         <Field
           label="Grade"
           htmlFor="absent-grade"

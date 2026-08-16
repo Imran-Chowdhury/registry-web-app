@@ -17,6 +17,34 @@ export function useAssessments() {
   });
 }
 
+/**
+ * The assessment header is server-rendered, so the cutoff change is followed by a router
+ * refresh rather than only a cache invalidation — the badge and the button label both
+ * live in that server component.
+ */
+export function useSetSubmissionsClosed(assessmentId: string) {
+  const queryClient = useQueryClient();
+  const router = useRouter();
+
+  return useMutation({
+    mutationFn: (closed: boolean) =>
+      assessmentsApi.setSubmissionsClosed(assessmentId, { closed }),
+    onSuccess: (assessment) => {
+      queryClient.invalidateQueries({ queryKey: assessmentKeys.lists() });
+      router.refresh();
+      toast.success(
+        assessment.submissionsClosedAt ? 'Submissions closed.' : 'Submissions reopened.',
+        assessment.submissionsClosedAt
+          ? 'No further work will be accepted for this assessment.'
+          : 'Late work is being accepted again.',
+      );
+    },
+    onError: (error: HttpError) => {
+      toast.error('Submissions unchanged.', error.message);
+    },
+  });
+}
+
 export function useCreateAssessment() {
   const queryClient = useQueryClient();
   const router = useRouter();

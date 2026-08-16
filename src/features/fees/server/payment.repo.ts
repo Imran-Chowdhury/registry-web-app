@@ -102,7 +102,8 @@ export const paymentRepo = {
           }
         : undefined,
       select: ledgerSelect,
-      orderBy: [{ paidAt: 'desc' }, { id: 'desc' }],
+      // Entry order, matching the per-student ledger. See the note in `fee.repo.ts`.
+      orderBy: { createdAt: 'desc' },
       take: 200,
     });
   },

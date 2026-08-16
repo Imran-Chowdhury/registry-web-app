@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-import { Button, Dialog, Field, Textarea } from '@/components/ui';
+import { Button, Dialog, Field, FormError, Textarea } from '@/components/ui';
 
 import { DEFAULT_WITHHOLD_REASON, withholdFormSchema } from '../schema';
 
@@ -19,12 +19,15 @@ export function WithholdDialog({
   open,
   studentName,
   pending,
+  serverError,
   onClose,
   onConfirm,
 }: {
   open: boolean;
   studentName: string;
   pending: boolean;
+  /** The server's rejection, shown here because a toast cannot be seen behind a modal. */
+  serverError?: string;
   onClose: () => void;
   onConfirm: (reason: string) => void;
 }) {
@@ -67,6 +70,12 @@ export function WithholdDialog({
         </>
       }
     >
+      {serverError && (
+        <p className="mb-3">
+          <FormError>{serverError}</FormError>
+        </p>
+      )}
+
       <Field
         label="Reason"
         htmlFor="withheld-reason"

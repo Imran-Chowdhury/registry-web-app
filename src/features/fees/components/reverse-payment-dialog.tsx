@@ -3,7 +3,7 @@
 import { useState } from 'react';
 
 import { Money } from '@/components/shared/money';
-import { Button, Dialog, Field, Textarea } from '@/components/ui';
+import { Button, Dialog, Field, FormError, Textarea } from '@/components/ui';
 
 import { useReversePayment } from '../hooks/use-fees';
 import type { PaymentEntry } from '../types';
@@ -32,19 +32,25 @@ export function ReversePaymentDialog({
     setError(undefined);
     reversePayment.mutate(
       { paymentId: payment.id, input: { reason: reason.trim() } },
-      { onSuccess: onClose },
+      { onSuccess: close },
     );
+  }
+
+  function close() {
+    reversePayment.reset();
+    setError(undefined);
+    onClose();
   }
 
   return (
     <Dialog
       open={open}
-      onClose={onClose}
+      onClose={close}
       title="Reverse this payment?"
       description="The payment stays on the ledger and a counter-entry is added beside it. The balance goes back up."
       footer={
         <>
-          <Button variant="secondary" onClick={onClose} disabled={reversePayment.isPending}>
+          <Button variant="secondary" onClick={close} disabled={reversePayment.isPending}>
             Cancel
           </Button>
           <Button
@@ -59,6 +65,8 @@ export function ReversePaymentDialog({
       }
     >
       <div className="space-y-4">
+        {reversePayment.error && <FormError>{reversePayment.error.message}</FormError>}
+
         <div className="rounded-control border border-rule bg-surface px-3 py-2 text-xs">
           <p className="font-mono">{payment.reference}</p>
           <p className="mt-0.5">

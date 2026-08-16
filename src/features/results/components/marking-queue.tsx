@@ -271,7 +271,12 @@ export function MarkingQueue({ assessmentId }: { assessmentId: string }) {
                       <Button
                         size="sm"
                         variant="secondary"
-                        onClick={() => setAbsentFor(row)}
+                        onClick={() => {
+                          // Drop any rejection left over from an inline grade save, so
+                          // the dialog opens clean.
+                          saveGrade.reset();
+                          setAbsentFor(row);
+                        }}
                       >
                         Record as absent
                       </Button>
@@ -289,7 +294,10 @@ export function MarkingQueue({ assessmentId }: { assessmentId: string }) {
                           action: 'PUBLISH',
                         })
                       }
-                      onWithhold={() => setWithholding(row)}
+                      onWithhold={() => {
+                        setStatus.reset();
+                        setWithholding(row);
+                      }}
                     />
                   </TD>
                 </TR>
@@ -310,6 +318,7 @@ export function MarkingQueue({ assessmentId }: { assessmentId: string }) {
         open={absentFor !== null}
         studentName={absentFor?.studentName ?? ''}
         pending={saveGrade.isPending}
+        serverError={saveGrade.error?.message}
         onClose={() => setAbsentFor(null)}
         onConfirm={({ grade, reason }) => {
           if (!absentFor) return;
@@ -329,6 +338,7 @@ export function MarkingQueue({ assessmentId }: { assessmentId: string }) {
         open={withholding !== null}
         studentName={withholding?.studentName ?? ''}
         pending={setStatus.isPending}
+        serverError={setStatus.error?.message}
         onClose={() => setWithholding(null)}
         onConfirm={(reason) => {
           if (!withholding) return;

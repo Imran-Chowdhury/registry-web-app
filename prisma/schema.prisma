@@ -129,13 +129,17 @@ model Payment {
 }
 
 model Assessment {
-  id          String   @id @default(cuid())
-  title       String
-  moduleId    String
-  deadline    DateTime
-  maxAttempts Int      @default(0) // 0 = unlimited before the deadline
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id                  String    @id @default(cuid())
+  title               String
+  moduleId            String
+  deadline            DateTime
+  maxAttempts         Int       @default(0) // 0 = unlimited before the deadline
+  // Hard cutoff for late work, set by staff when they stop accepting it. Null = still
+  // open. Deliberately separate from `deadline`: the deadline decides who was late and
+  // must not move, while this decides whether anything more can arrive at all.
+  submissionsClosedAt DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 
   module      Module       @relation(fields: [moduleId], references: [id])
   submissions Submission[]

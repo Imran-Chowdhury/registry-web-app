@@ -7,11 +7,18 @@ import { Toaster } from '@/components/ui';
 import { listDemoStudents } from '@/lib/demo-students';
 import { getViewer } from '@/lib/viewer';
 
+/**
+ * Four destinations, not five.
+ *
+ * Programmes are seeded rather than managed — the cut list in `docs/PLAN.md` says so —
+ * and a nav entry leading to a screen that only explains its own absence is worse than
+ * no entry at all. The fee-snapshot reasoning that screen would have carried lives in
+ * the README instead, where it reads as a decision rather than a gap.
+ */
 const STAFF_NAV: NavItem[] = [
   { href: '/dashboard', label: 'Dashboard' },
   { href: '/students', label: 'Students' },
   { href: '/assessments', label: 'Assessments' },
-  { href: '/programmes', label: 'Programmes' },
   { href: '/payments', label: 'Payments' },
 ];
 

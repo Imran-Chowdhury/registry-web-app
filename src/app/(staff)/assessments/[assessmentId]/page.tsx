@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 import { PageHeader } from '@/components/shared/page-header';
+import { SubmissionCutoffControl } from '@/features/assessments';
 import { assessmentService } from '@/features/assessments/server';
 import { MarkingQueue } from '@/features/results';
 import { formatDateTime, relativeToNow } from '@/lib/dates';
@@ -40,6 +41,13 @@ export default async function AssessmentDetailPage({
             {formatDateTime(assessment.deadline)} ·{' '}
             {assessment.isClosed ? 'closed' : relativeToNow(assessment.deadline)}
           </span>
+        }
+        action={
+          <SubmissionCutoffControl
+            assessmentId={assessment.id}
+            submissionsClosedAt={assessment.submissionsClosedAt}
+            missingCount={assessment.expectedCount - assessment.submittedCount}
+          />
         }
       />
 

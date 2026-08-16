@@ -10,6 +10,7 @@ const assessmentSelect = {
   title: true,
   deadline: true,
   maxAttempts: true,
+  submissionsClosedAt: true,
   moduleId: true,
   module: {
     select: {
@@ -85,6 +86,15 @@ export const assessmentRepo = {
       },
       select: { id: true, studentCode: true, fullName: true, status: true },
       orderBy: { studentCode: 'asc' },
+    });
+  },
+
+  /** Sets or lifts the late-work cutoff. Null reopens the assessment. */
+  setSubmissionsClosedAt(id: string, closedAt: Date | null) {
+    return db.assessment.update({
+      where: { id },
+      data: { submissionsClosedAt: closedAt },
+      select: { id: true },
     });
   },
 

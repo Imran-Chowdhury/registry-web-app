@@ -94,6 +94,34 @@ export const assessmentService = {
     return (await submissionRepo.countAttempts(studentId, assessmentId)) > 0;
   },
 
+  /**
+   * Stops or resumes accepting late work.
+   *
+   * A deadline alone never ends submission — a first late submission is still accepted
+   * and flagged, because the registry needs the record. This is the separate act of
+   * saying "that is everything", after which non-submitters can be marked absent and
+   * marking can be finished. Reopening is allowed: closing early is a mistake worth
+   * being able to undo.
+   */
+  async setSubmissionsClosed(
+    viewer: Viewer,
+    id: string,
+    closed: boolean,
+  ): Promise<AssessmentDetail> {
+    requireStaff(viewer);
+
+    const existing = await assessmentRepo.findById(id);
+    if (!existing) throw new NotFoundError('Assessment');
+
+    // Closing an already-closed assessment keeps the original cutoff rather than moving
+    // it, so the recorded time stays the moment the decision was actually made.
+    if (closed !== (existing.submissionsClosedAt !== null)) {
+      await assessmentRepo.setSubmissionsClosedAt(id, closed ? new Date() : null);
+    }
+
+    return assessmentService.getById(viewer, id);
+  },
+
   async listModules(viewer: Viewer): Promise<ModuleOption[]> {
     requireStaff(viewer);
     return assessmentRepo.findModules();
@@ -201,6 +229,7 @@ async function toListItem(row: AssessmentRow): Promise<AssessmentListItem> {
     deadline: row.deadline.toISOString(),
     maxAttempts: row.maxAttempts,
     isClosed: row.deadline.getTime() < Date.now(),
+    submissionsClosedAt: row.submissionsClosedAt?.toISOString() ?? null,
     expectedCount: expected.length,
     submittedCount: latestByStudent.size,
     lateCount,

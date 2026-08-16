@@ -3,7 +3,7 @@
 import { useState } from 'react';
 
 import { Money } from '@/components/shared/money';
-import { Button, Dialog, Field, Input, Textarea } from '@/components/ui';
+import { Button, Dialog, Field, FormError, Input, Textarea } from '@/components/ui';
 import { formatMoney, toMinor } from '@/lib/money';
 
 import { useRecordPayment } from '../hooks/use-fees';
@@ -35,6 +35,22 @@ export function RecordPaymentDialog({
   const [note, setNote] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  /*
+    The server's rejection is shown here, not only in a toast. A duplicate reference is a
+    field error and belongs under the field — and a toast cannot be seen behind a modal
+    dialog at all, because `showModal()` puts the dialog in the browser's top layer.
+  */
+  const serverError = recordPayment.error;
+  const referenceTaken =
+    serverError?.code === 'CONFLICT' && /reference/i.test(serverError.message);
+
+  function close() {
+    // Clears a stale rejection so reopening the dialog does not show the last failure.
+    recordPayment.reset();
+    setErrors({});
+    onClose();
+  }
+
   const amountMinor = /^\d+(\.\d{1,2})?$/.test(amount) ? toMinor(Number(amount)) : null;
   const remainingMinor =
     amountMinor === null ? fee.outstandingMinor : fee.outstandingMinor - amountMinor;
@@ -61,19 +77,19 @@ export function RecordPaymentDialog({
         reference: parsed.data.reference,
         note: parsed.data.note,
       },
-      { onSuccess: onClose },
+      { onSuccess: close },
     );
   }
 
   return (
     <Dialog
       open={open}
-      onClose={onClose}
+      onClose={close}
       title="Record payment"
       description={`${fee.description} · ${formatMoney(fee.outstandingMinor)} outstanding`}
       footer={
         <>
-          <Button variant="secondary" onClick={onClose} disabled={recordPayment.isPending}>
+          <Button variant="secondary" onClick={close} disabled={recordPayment.isPending}>
             Cancel
           </Button>
           <Button
@@ -88,6 +104,8 @@ export function RecordPaymentDialog({
       }
     >
       <div className="space-y-4">
+        {serverError && !referenceTaken && <FormError>{serverError.message}</FormError>}
+
         <div className="flex items-baseline justify-between rounded-control border border-rule bg-surface px-3 py-2 text-xs">
           <span className="text-muted">Outstanding</span>
           <Money minor={fee.outstandingMinor} alert={fee.isOverdue} />
@@ -137,7 +155,7 @@ export function RecordPaymentDialog({
           label="Reference"
           htmlFor="payment-reference"
           required
-          error={errors.reference}
+          error={errors.reference ?? (referenceTaken ? serverError.message : undefined)}
           hint="Must be unique. The same reference cannot be recorded twice."
         >
           <Input
@@ -145,7 +163,7 @@ export function RecordPaymentDialog({
             mono
             placeholder="BANK-2026-0412"
             value={reference}
-            invalid={Boolean(errors.reference)}
+            invalid={Boolean(errors.reference) || referenceTaken}
             onChange={(event) => setReference(event.target.value)}
           />
         </Field>

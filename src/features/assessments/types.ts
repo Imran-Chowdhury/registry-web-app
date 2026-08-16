@@ -13,6 +13,15 @@ export type AssessmentListItem = {
   maxAttempts: number;
   /** Deadline has passed. Computed at read time, never stored. */
   isClosed: boolean;
+  /**
+   * When staff stopped accepting late work, or null while it is still being accepted.
+   *
+   * Separate from `isClosed`: a passed deadline still takes a first submission and flags
+   * it late, because work handed in late is still work. This is the registry deciding
+   * that no more will be taken at all — the point at which non-submitters can be marked
+   * absent and marking can finish.
+   */
+  submissionsClosedAt: string | null;
   /** Students on the module's programmes who are expected to submit. */
   expectedCount: number;
   submittedCount: number;
@@ -75,6 +84,8 @@ export type StudentAssessmentCard = {
   moduleName: string;
   deadline: string;
   isClosed: boolean;
+  /** Late work is no longer accepted, whatever the deadline says. */
+  submissionsClosed: boolean;
   maxAttempts: number;
   latest: SubmissionAttempt | null;
   attemptCount: number;

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 
 import { Money } from '@/components/shared/money';
-import { Button, Dialog } from '@/components/ui';
+import { Button, Dialog, FormError } from '@/components/ui';
 
 import { usePublishAll } from '../hooks/use-results';
 import type { MarkingRow } from '../types';
@@ -67,6 +67,12 @@ export function PublishAllDialog({
         </>
       }
     >
+      {publishAll.error && (
+        <p className="mb-3">
+          <FormError>{publishAll.error.message}</FormError>
+        </p>
+      )}
+
       {inArrears.length > 0 && (
         <div className="rounded-control border border-alert p-3">
           <p className="text-xs font-medium text-alert">

@@ -39,6 +39,7 @@ export const submissionService = {
         maxAttempts: assessment.maxAttempts,
         attemptCount: attempts.length,
         hasReleasedResult: hasReleasedResult(assessment, viewer.studentId),
+        submissionsClosed: assessment.submissionsClosedAt !== null,
       });
 
       return {
@@ -48,6 +49,7 @@ export const submissionService = {
         moduleName: assessment.module.name,
         deadline: assessment.deadline.toISOString(),
         isClosed: assessment.deadline.getTime() < Date.now(),
+        submissionsClosed: assessment.submissionsClosedAt !== null,
         maxAttempts: assessment.maxAttempts,
         latest: latest ?? null,
         attemptCount: attempts.length,
@@ -93,6 +95,7 @@ export const submissionService = {
       maxAttempts: assessment.maxAttempts,
       attemptCount,
       hasReleasedResult: hasReleasedResult(assessment, viewer.studentId),
+      submissionsClosed: assessment.submissionsClosedAt !== null,
     });
     if (block) throw new ConflictError(block);
 
@@ -169,6 +172,8 @@ function hasReleasedResult(
  *    while staff take it back to correct it: replacing the file a grade was awarded
  *    against would leave that grade describing a document nobody marked. Checked before
  *    the deadline rules, because it holds whether or not the deadline has passed;
+ *  - once staff close submissions, nothing more is taken at all. A passed deadline does
+ *    not do this by itself — closing is the registry deciding late work is finished;
  *  - a first submission after the deadline is accepted, and flagged late — work handed
  *    in late is still work, and the registry needs the record;
  *  - a *replacement* after the deadline is refused, because the brief allows resubmission
@@ -181,6 +186,7 @@ function blockedReason(input: {
   maxAttempts: number;
   attemptCount: number;
   hasReleasedResult: boolean;
+  submissionsClosed: boolean;
 }): string | null {
   const { studentStatus, deadline, maxAttempts, attemptCount } = input;
 
@@ -192,6 +198,9 @@ function blockedReason(input: {
   }
   if (input.hasReleasedResult) {
     return 'This assessment has been marked and released. Your submission can no longer be changed.';
+  }
+  if (input.submissionsClosed) {
+    return 'The Registry has closed submissions for this assessment.';
   }
 
   const closed = deadline.getTime() < Date.now();

@@ -31,3 +31,10 @@ export const assessmentFormSchema = z.object({
 });
 
 export type AssessmentFormValues = z.infer<typeof assessmentFormSchema>;
+
+/** Staff stopping — or resuming — the acceptance of late work. */
+export const closeSubmissionsSchema = z.object({
+  closed: z.boolean(),
+});
+
+export type CloseSubmissionsInput = z.infer<typeof closeSubmissionsSchema>;
