@@ -3,6 +3,7 @@
 import { useState } from 'react';
 
 import { FeePanel } from '@/features/fees';
+import { StudentResultsTab } from '@/features/results';
 import type { ProgrammeOption } from '@/features/programmes';
 import { Button, Card, CardBody, EmptyState, Skeleton } from '@/components/ui';
 import { formatDateTime } from '@/lib/dates';
@@ -103,16 +104,14 @@ export function StudentDetailScreen({
           <div className="pt-4">
             {tab === 'Fees' ? (
               <FeePanel studentId={student.id} />
+            ) : tab === 'Results' ? (
+              <StudentResultsTab studentId={student.id} />
             ) : tab === 'History' ? (
               <StatusHistory student={student} />
             ) : (
               <EmptyState
-                title={`${tab} arrive in a later phase.`}
-                description={
-                  tab === 'Submissions'
-                    ? 'Coursework and late flagging land in Phase 4.'
-                    : 'Grades, publishing, and withholding land in Phase 5.'
-                }
+                title="Submissions are listed on each assessment."
+                description="Open an assessment to see this student's attempts, lateness, and files."
               />
             )}
           </div>

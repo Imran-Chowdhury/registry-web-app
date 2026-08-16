@@ -4,7 +4,7 @@ import { ForbiddenError, NotFoundError } from '@/lib/errors';
 import type { Viewer } from '@/lib/viewer';
 
 import { computeFeeSummary } from '../fee-math';
-import type { FeeDetail, PaymentEntry } from '../types';
+import type { FeeDetail, PaymentEntry, StudentArrears } from '../types';
 import { feeRepo, type FeeRow } from './fee.repo';
 
 export const feeService = {
@@ -19,6 +19,45 @@ export const feeService = {
 
     const rows = await feeRepo.findByStudent(studentId);
     return rows.map(toFeeDetail);
+  },
+
+  /**
+   * Arrears for a set of students, keyed by student id.
+   *
+   * Staff only, and read through the same `computeFeeSummary` as every other balance in
+   * the app — the publish screen must not develop its own opinion about what a student
+   * owes.
+   */
+  async arrearsByStudent(
+    viewer: Viewer,
+    studentIds: string[],
+  ): Promise<Map<string, StudentArrears>> {
+    if (viewer.role !== 'STAFF') {
+      throw new ForbiddenError('Only registry staff can read other students’ balances.');
+    }
+
+    const rows = await feeRepo.findByStudents(studentIds);
+    const arrears = new Map<string, StudentArrears>();
+
+    for (const row of rows) {
+      const detail = toFeeDetail(row);
+      const current = arrears.get(row.studentId) ?? {
+        studentId: row.studentId,
+        outstandingMinor: 0,
+        isOverdue: false,
+        daysOverdue: 0,
+      };
+
+      arrears.set(row.studentId, {
+        studentId: row.studentId,
+        outstandingMinor:
+          current.outstandingMinor + Math.max(0, detail.outstandingMinor),
+        isOverdue: current.isOverdue || detail.isOverdue,
+        daysOverdue: Math.max(current.daysOverdue, detail.daysOverdue),
+      });
+    }
+
+    return arrears;
   },
 
   async getById(viewer: Viewer, feeId: string): Promise<FeeDetail> {

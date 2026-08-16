@@ -1,6 +1,7 @@
-import { EmptyState } from '@/components/ui';
 import { StudentFeeSummary } from '@/features/fees';
 import { feeService } from '@/features/fees/server';
+import { RecentResults } from '@/features/results';
+import { resultService } from '@/features/results/server';
 import { studentService } from '@/features/students/server';
 import { getViewer } from '@/lib/viewer';
 
@@ -9,7 +10,10 @@ export default async function StudentOverviewPage() {
   // Scoped from the cookie-derived viewer. No id is accepted from the client, and the
   // services refuse anything that is not this student's own record.
   const student = await studentService.getSelf(viewer);
-  const fees = await feeService.listForStudent(viewer, student.id);
+  const [fees, marksheet] = await Promise.all([
+    feeService.listForStudent(viewer, student.id),
+    resultService.marksheetForSelf(viewer),
+  ]);
 
   return (
     <>
@@ -23,11 +27,8 @@ export default async function StudentOverviewPage() {
       <StudentFeeSummary fees={fees} />
 
       <section className="mt-8">
-        <h2 className="mb-3 text-base font-semibold">Coursework</h2>
-        <EmptyState
-          title="Your assessments appear here."
-          description="Deadlines and submissions arrive in Phase 4; results in Phase 5."
-        />
+        <h2 className="mb-3 text-base font-semibold">Recent results</h2>
+        <RecentResults marksheet={marksheet} />
       </section>
     </>
   );

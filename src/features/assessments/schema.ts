@@ -31,6 +31,3 @@ export const assessmentFormSchema = z.object({
 });
 
 export type AssessmentFormValues = z.infer<typeof assessmentFormSchema>;
-
-export const submissionFilters = ['ALL', 'LATE', 'MISSING', 'UNMARKED'] as const;
-export type SubmissionFilter = (typeof submissionFilters)[number];

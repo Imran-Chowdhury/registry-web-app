@@ -17,13 +17,6 @@ export function useAssessments() {
   });
 }
 
-export function useAssessmentSubmissions(assessmentId: string) {
-  return useQuery({
-    queryKey: assessmentKeys.submissions(assessmentId),
-    queryFn: () => assessmentsApi.submissions(assessmentId),
-  });
-}
-
 export function useCreateAssessment() {
   const queryClient = useQueryClient();
   const router = useRouter();

@@ -14,6 +14,22 @@ export type FeeSummary = {
   daysOverdue: number;
 };
 
+/**
+ * A student's arrears rolled up across all their fee assignments.
+ *
+ * Exists so other features can ask "does this student owe money?" without reaching into
+ * the fees tables themselves. The publish flow is the caller that matters: a registry
+ * withholds results for arrears, so the marking screen has to know.
+ */
+export type StudentArrears = {
+  studentId: string;
+  /** Summed across every fee assignment. Never negative. */
+  outstandingMinor: number;
+  isOverdue: boolean;
+  /** The worst of them — the oldest debt is the one worth naming. */
+  daysOverdue: number;
+};
+
 export type PaymentStatusValue = 'COMPLETED' | 'REVERSED';
 
 export type PaymentEntry = {

@@ -20,6 +20,7 @@ export type {
   LedgerEntry,
   PaymentEntry,
   PaymentStatusValue,
+  StudentArrears,
 } from './types';
 
 export { feeKeys } from './api/keys';

@@ -2,8 +2,8 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 import { PageHeader } from '@/components/shared/page-header';
-import { AssessmentSubmissions } from '@/features/assessments';
 import { assessmentService } from '@/features/assessments/server';
+import { MarkingQueue } from '@/features/results';
 import { formatDateTime, relativeToNow } from '@/lib/dates';
 import { isAppError } from '@/lib/errors';
 import { getViewer } from '@/lib/viewer';
@@ -43,7 +43,7 @@ export default async function AssessmentDetailPage({
         }
       />
 
-      <AssessmentSubmissions assessmentId={assessment.id} />
+      <MarkingQueue assessmentId={assessment.id} />
     </>
   );
 }

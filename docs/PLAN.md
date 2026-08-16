@@ -201,26 +201,37 @@ flagged with the exact delay in both views. A withdrawn student cannot submit.
 **Budget:** 3–4 hours.
 
 **Server**
-- [ ] `result.repo.ts` / `result.service.ts` — upsert grade (0–100 validated), publish,
+- [x] `result.repo.ts` / `result.service.ts` — upsert grade (0–100 validated), publish,
       withhold with reason, bulk publish
-- [ ] Classification computed, never stored: `>=70 Distinction, >=60 Merit, >=40 Pass,
+- [x] Classification computed, never stored: `>=70 Distinction, >=60 Merit, >=40 Pass,
       <40 Fail`
-- [ ] Student queries return `PUBLISHED` and `WITHHELD` only; `DRAFT` is invisible
-- [ ] Overdue-balance lookup exposed to the publish flow
-- [ ] `POST/PATCH /api/results`, `POST /api/results/publish`
+- [x] Student queries return `PUBLISHED` and `WITHHELD` only; `DRAFT` is invisible
+- [x] Overdue-balance lookup exposed to the publish flow
+- [x] `POST/PATCH /api/results`, `POST /api/results/publish`
 
 **Staff UI**
-- [ ] Inline grade input in the submission row; classification updates live on save
-- [ ] Publish / withhold per row; withhold captures a reason
-- [ ] **Overdue balance warning inside the row** — the single highest-value detail
-- [ ] `Publish all marked` confirm listing overdue students with an exclude checkbox
-- [ ] Student detail → Results tab
+- [x] Inline grade input in the submission row; classification updates live on save
+- [x] Publish / withhold per row; withhold captures a reason
+- [x] **Overdue balance warning inside the row** — the single highest-value detail
+- [x] `Publish all marked` confirm listing overdue students with an exclude checkbox
+- [x] Student detail → Results tab
 
 **Student UI**
-- [ ] Marksheet: published results, grade + classification, published date
-- [ ] Average across published results only, with the count stated
-- [ ] Separate **Not yet available** section for withheld results with the reason
-- [ ] Unmarked work not listed at all — the draft/withheld distinction must be legible
+- [x] Marksheet: published results, grade + classification, published date
+- [x] Average across published results only, with the count stated
+- [x] Separate **Not yet available** section for withheld results with the reason
+- [x] Unmarked work not listed at all — the draft/withheld distinction must be legible
+
+**Decided during this phase — carry into the README (Phase 8)**
+- Grading a student with no submission is allowed and **requires a note** (absent = 0
+  with a reason on record). An unexplained zero is indistinguishable from a mistake a
+  year later. `WITHDRAWN` students cannot be graded at all, matching the submission rule
+- `Result.note` is **staff-internal** and absent from every student-facing DTO. The
+  student-facing channel is `withheldReason`
+- Bulk publish acts on `DRAFT` only. A withheld result is a decision someone already made
+  with a reason attached, and a bulk action does not overwrite it
+- Bulk publish **withholds** students in arrears rather than skipping them: skipping
+  leaves them in `DRAFT`, which tells the student nothing
 
 **Done when:** a staff member can grade, withhold with a reason, and the student sees
 "withheld + reason" rather than a blank — and publishing a result for an overdue student

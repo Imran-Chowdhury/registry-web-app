@@ -13,6 +13,7 @@ import type {
   SubmissionRow,
 } from '../types';
 import { assessmentRepo, type AssessmentRow } from './assessment.repo';
+import { submissionRepo } from './submission.repo';
 
 export const assessmentService = {
   async list(viewer: Viewer): Promise<AssessmentListItem[]> {
@@ -75,6 +76,22 @@ export const assessmentService = {
     });
 
     return assessmentService.getById(viewer, created.id);
+  },
+
+  /**
+   * Whether a student has anything on record for an assessment.
+   *
+   * Exposed on the service rather than left to callers to query, so grading can refuse
+   * an unexplained mark against no submission without reaching into the submissions
+   * tables from another feature.
+   */
+  async hasSubmitted(
+    viewer: Viewer,
+    studentId: string,
+    assessmentId: string,
+  ): Promise<boolean> {
+    requireStaff(viewer);
+    return (await submissionRepo.countAttempts(studentId, assessmentId)) > 0;
   },
 
   async listModules(viewer: Viewer): Promise<ModuleOption[]> {

@@ -37,6 +37,17 @@ export const feeRepo = {
     });
   },
 
+  /** One query for a set of students, rather than one query per row of a table. */
+  findByStudents(studentIds: string[]): Promise<FeeRow[]> {
+    if (studentIds.length === 0) return Promise.resolve([]);
+
+    return db.feeAssignment.findMany({
+      where: { studentId: { in: studentIds } },
+      select: feeSelect,
+      orderBy: { dueDate: 'asc' },
+    });
+  },
+
   findById(feeId: string): Promise<FeeRow | null> {
     return db.feeAssignment.findUnique({ where: { id: feeId }, select: feeSelect });
   },

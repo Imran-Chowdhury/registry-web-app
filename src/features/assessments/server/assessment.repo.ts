@@ -19,7 +19,17 @@ const assessmentSelect = {
     },
   },
   submissions: {
-    select: { id: true, studentId: true, attempt: true, submittedAt: true },
+    select: {
+      id: true,
+      studentId: true,
+      attempt: true,
+      submittedAt: true,
+      // The marking queue links straight to the file, so the row needs enough to label
+      // and size the link — without them the download renders as an empty anchor.
+      fileName: true,
+      fileSize: true,
+      mimeType: true,
+    },
     orderBy: { attempt: 'desc' as const },
   },
   results: { select: { studentId: true, grade: true, status: true } },
