@@ -18,6 +18,14 @@ export type ViewerRole = Viewer['role'];
 export const VIEWER_ROLE_COOKIE = 'viewer_role';
 export const VIEWER_STUDENT_COOKIE = 'viewer_student_id';
 
+/**
+ * Where each role's home is. One definition, shared by `/` and by the demo switcher —
+ * two copies would drift the moment a landing screen moved.
+ */
+export function homeFor(role: ViewerRole): string {
+  return role === 'STUDENT' ? '/me' : '/dashboard';
+}
+
 /** Query keys and caches are scoped by this, so a switch cannot serve stale data. */
 export function viewerKey(viewer: Viewer): string {
   return viewer.role === 'STUDENT' ? `student:${viewer.studentId}` : 'staff';

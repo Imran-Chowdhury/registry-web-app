@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 
 import { getViewer } from '@/lib/viewer';
+import { homeFor } from '@/lib/viewer.shared';
 
 /**
  * `/` has no screen of its own — where home is depends on who is looking. Staff land on
@@ -9,5 +10,5 @@ import { getViewer } from '@/lib/viewer';
  */
 export default async function RootPage() {
   const viewer = await getViewer();
-  redirect(viewer.role === 'STUDENT' ? '/me' : '/dashboard');
+  redirect(homeFor(viewer.role));
 }

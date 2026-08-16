@@ -31,12 +31,16 @@ export function DemoBanner({
   const activeStudentId = viewer.role === 'STUDENT' ? viewer.studentId : '';
 
   function switchTo(role: 'STAFF' | 'STUDENT', studentId?: string) {
+    // Every cached query was fetched as somebody else. Without this the previous
+    // student's marksheet flashes on screen during the transition and reads as a data
+    // leak, even though the server would never have sent it.
+    //
+    // Cleared before the call, not after: a role switch makes the action redirect, and
+    // work queued behind that await is not guaranteed to run before the navigation.
+    queryClient.clear();
+
     startTransition(async () => {
       await setViewer({ role, studentId });
-      // Every cached query was fetched as somebody else. Without this the previous
-      // student's marksheet flashes on screen during the transition and reads as a
-      // data leak, even though the server would never have sent it.
-      queryClient.clear();
       router.refresh();
     });
   }
