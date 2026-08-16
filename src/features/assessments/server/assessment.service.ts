@@ -175,8 +175,22 @@ async function toListItem(row: AssessmentRow): Promise<AssessmentListItem> {
     if (submittedAt.getTime() > row.deadline.getTime()) lateCount += 1;
   }
 
-  const markedCount = row.results.filter(
-    (result) => result.grade !== null && expectedIds.has(result.studentId),
+  const expectedResults = row.results.filter((result) =>
+    expectedIds.has(result.studentId),
+  );
+  const markedCount = expectedResults.filter((result) => result.grade !== null).length;
+  const awaitingPublishCount = expectedResults.filter(
+    (result) => result.grade !== null && result.status === 'DRAFT',
+  ).length;
+
+  // Work that is in and waiting on someone — the dashboard's "awaiting marking" figure.
+  const gradedStudents = new Set(
+    expectedResults
+      .filter((result) => result.grade !== null)
+      .map((result) => result.studentId),
+  );
+  const unmarkedCount = [...latestByStudent.keys()].filter(
+    (studentId) => !gradedStudents.has(studentId),
   ).length;
 
   return {
@@ -191,5 +205,7 @@ async function toListItem(row: AssessmentRow): Promise<AssessmentListItem> {
     submittedCount: latestByStudent.size,
     lateCount,
     markedCount,
+    unmarkedCount,
+    awaitingPublishCount,
   };
 }

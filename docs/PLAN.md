@@ -244,13 +244,23 @@ warns first.
 **Goal:** answer the three admin questions in one screen.
 **Budget:** 1.5–2 hours — cheap, because every pattern already exists.
 
-- [ ] Four stat tiles: enrolled count, total outstanding, overdue count, awaiting marking
-- [ ] Overdue tile number turns red above zero
-- [ ] Overdue accounts table, sorted by days overdue descending, rows link to the student
-- [ ] Late submissions summary panel
-- [ ] Ready-to-publish panel linking to the assessment
-- [ ] Informative empty states (*"No overdue accounts. Next payment due 14 March."*)
-- [ ] No charts
+- [x] Four stat tiles: enrolled count, total outstanding, overdue count, awaiting marking
+- [x] Overdue tile number turns red above zero
+- [x] Overdue accounts table, sorted by days overdue descending, rows link to the student
+- [x] Late submissions summary panel
+- [x] Ready-to-publish panel linking to the assessment
+- [x] Informative empty states (*"No overdue accounts. Next payment due 14 March."*)
+- [x] No charts
+
+**Decided during this phase**
+- The dashboard has **no repository**. It composes `studentService` and
+  `assessmentService`, so "overdue" and "unmarked" keep one definition each and the
+  summary cannot contradict the screen it links to
+- Rendered server-side in one pass, no TanStack Query: a read-only composite with nothing
+  to mutate gains a loading state and a stale window from a client cache, and nothing else
+- "Ready to publish" counts `awaitingPublishCount` (marked **and** still `DRAFT`), not
+  `marked − published`. A withheld result is a decision already made, and bulk publish
+  skips it — the dashboard must not advertise work the marking screen refuses to do
 
 **Done when:** a reviewer landing on `/` immediately sees what's wrong today.
 

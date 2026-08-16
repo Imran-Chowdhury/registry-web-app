@@ -1,17 +1,19 @@
 import { PageHeader } from '@/components/shared/page-header';
-import { EmptyState } from '@/components/ui';
+import { DashboardView } from '@/features/dashboard';
+import { dashboardService } from '@/features/dashboard/server';
+import { getViewer } from '@/lib/viewer';
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const viewer = await getViewer();
+  const summary = await dashboardService.summary(viewer);
+
   return (
     <>
       <PageHeader
         title="Registry"
         description="Outstanding fees, late work, and results waiting to be published."
       />
-      <EmptyState
-        title="The dashboard is assembled in Phase 6."
-        description="It reads from the students, fees, submissions, and results features, so it is built once those exist."
-      />
+      <DashboardView summary={summary} />
     </>
   );
 }

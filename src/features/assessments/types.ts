@@ -18,6 +18,20 @@ export type AssessmentListItem = {
   submittedCount: number;
   lateCount: number;
   markedCount: number;
+  /**
+   * Submitted but not yet graded. Not `submittedCount − markedCount`: a mark can be
+   * recorded against a student who never submitted (absent), so the two would drift.
+   */
+  unmarkedCount: number;
+  /**
+   * Marked, still `DRAFT`, and therefore genuinely awaiting release.
+   *
+   * Not `marked − published`: that would count a withheld result as pending, and a
+   * withhold is a decision someone already made. Bulk publish acts on drafts only, so
+   * anything reporting "ready to publish" has to count the same set or the dashboard
+   * promises work the marking screen refuses to do.
+   */
+  awaitingPublishCount: number;
 };
 
 export type AssessmentDetail = AssessmentListItem & {
