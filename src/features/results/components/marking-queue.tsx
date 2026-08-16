@@ -196,7 +196,7 @@ export function MarkingQueue({ assessmentId }: { assessmentId: string }) {
                     )}
                   </TD>
 
-                  <TD>
+                  <TD className="py-2">
                     {row.latest ? (
                       <>
                         <a
@@ -214,7 +214,13 @@ export function MarkingQueue({ assessmentId }: { assessmentId: string }) {
                     )}
                   </TD>
 
-                  <TD className="text-center">
+                  {/*
+                    Every cell in this row carries the same vertical padding. The grade
+                    cell is taller than the 40px `h-10` the primitive assumes, so without
+                    it a row with no arrears, late or attempt line collapses to the grade
+                    cell's own height and the input sits flush against the row edge.
+                  */}
+                  <TD className="py-2 text-center">
                     <GradeInput
                       grade={result?.grade ?? null}
                       disabled={withdrawn}
@@ -232,7 +238,7 @@ export function MarkingQueue({ assessmentId }: { assessmentId: string }) {
                     />
                   </TD>
 
-                  <TD numeric>
+                  <TD numeric className="py-2">
                     <ResultCell
                       row={row}
                       pending={setStatus.isPending}
