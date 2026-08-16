@@ -23,6 +23,7 @@ import { cn } from '@/lib/utils';
 import { useMarkingQueue, useSaveGrade, useSetResultStatus } from '../hooks/use-results';
 import { markingFilters, type MarkingFilter } from '../schema';
 import type { MarkingRow } from '../types';
+import { AbsentDialog } from './absent-dialog';
 import { GradeInput } from './grade-input';
 import { PublishAllDialog } from './publish-all-dialog';
 import { WithholdDialog } from './withhold-dialog';
@@ -45,6 +46,7 @@ const FILTER_LABELS: Record<MarkingFilter, string> = {
 export function MarkingQueue({ assessmentId }: { assessmentId: string }) {
   const [filter, setFilter] = useState<MarkingFilter>('ALL');
   const [withholding, setWithholding] = useState<MarkingRow | null>(null);
+  const [absentFor, setAbsentFor] = useState<MarkingRow | null>(null);
   const [publishAllOpen, setPublishAllOpen] = useState(false);
 
   const { data, isPending, isError, error, refetch } = useMarkingQueue(assessmentId);
@@ -221,21 +223,59 @@ export function MarkingQueue({ assessmentId }: { assessmentId: string }) {
                     cell's own height and the input sits flush against the row edge.
                   */}
                   <TD className="py-2 text-center">
-                    <GradeInput
-                      grade={result?.grade ?? null}
-                      disabled={withdrawn}
-                      disabledReason="Withdrawn students cannot be graded."
-                      onCommit={(grade) =>
-                        saveGrade.mutate({
-                          assessmentId,
-                          studentId: row.studentId,
-                          grade,
-                          // A grade against no submission needs a reason on record; the
-                          // service rejects it otherwise.
-                          note: row.latest ? undefined : 'Absent — no submission received.',
-                        })
-                      }
-                    />
+                    {withdrawn ? (
+                      <span
+                        className="text-xs text-muted"
+                        title="Withdrawn students cannot be graded."
+                      >
+                        —
+                      </span>
+                    ) : result?.status === 'PUBLISHED' ? (
+                      /*
+                        Published marks are read-only. The student has already been told
+                        this number, so changing it costs an explicit withhold first —
+                        which leaves them a reason rather than a gap.
+                      */
+                      <span
+                        className="inline-flex flex-col items-center gap-0.5"
+                        title="Withhold this result before changing the grade."
+                      >
+                        <span className="font-mono text-base tabular-nums">
+                          {result.grade}
+                        </span>
+                        <span className="text-xs text-muted">
+                          {result.classification}
+                        </span>
+                      </span>
+                    ) : row.latest || result ? (
+                      /*
+                        Editable once there is work or an existing mark. Correcting an
+                        absent grade does not re-ask for the reason — the stored one
+                        still explains it.
+                      */
+                      <GradeInput
+                        grade={result?.grade ?? null}
+                        onCommit={(grade) =>
+                          saveGrade.mutate({
+                            assessmentId,
+                            studentId: row.studentId,
+                            grade,
+                          })
+                        }
+                      />
+                    ) : (
+                      /*
+                        No submission and no mark: grading is behind a deliberate action
+                        rather than an input someone can tab into by accident.
+                      */
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => setAbsentFor(row)}
+                      >
+                        Record as absent
+                      </Button>
+                    )}
                   </TD>
 
                   <TD numeric className="py-2">
@@ -264,6 +304,25 @@ export function MarkingQueue({ assessmentId }: { assessmentId: string }) {
         rows={data}
         open={publishAllOpen}
         onClose={() => setPublishAllOpen(false)}
+      />
+
+      <AbsentDialog
+        open={absentFor !== null}
+        studentName={absentFor?.studentName ?? ''}
+        pending={saveGrade.isPending}
+        onClose={() => setAbsentFor(null)}
+        onConfirm={({ grade, reason }) => {
+          if (!absentFor) return;
+          saveGrade.mutate(
+            {
+              assessmentId,
+              studentId: absentFor.studentId,
+              grade,
+              note: reason,
+            },
+            { onSuccess: () => setAbsentFor(null) },
+          );
+        }}
       />
 
       <WithholdDialog

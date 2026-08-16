@@ -3,12 +3,18 @@ import 'server-only';
 import { assessmentService } from '@/features/assessments/server';
 import { feeService } from '@/features/fees/server';
 import { studentService } from '@/features/students/server';
-import { ForbiddenError, NotFoundError, ValidationError } from '@/lib/errors';
+import {
+  ConflictError,
+  ForbiddenError,
+  NotFoundError,
+  ValidationError,
+} from '@/lib/errors';
 import type { Viewer } from '@/lib/viewer';
 
 import { averageGrade, classify } from '../classification';
 import {
   ARREARS_WITHHOLD_REASON,
+  DEFAULT_WITHHOLD_REASON,
   bulkPublishSchema,
   saveGradeSchema,
   setResultStatusSchema,
@@ -88,13 +94,31 @@ export const resultService = {
       throw new ForbiddenError('Withdrawn students cannot be graded.');
     }
 
-    const submitted = await assessmentService.hasSubmitted(
-      viewer,
-      data.studentId,
-      data.assessmentId,
-    );
+    const [submitted, existing] = await Promise.all([
+      assessmentService.hasSubmitted(viewer, data.studentId, data.assessmentId),
+      resultRepo.findOne(data.studentId, data.assessmentId),
+    ]);
 
-    const note = data.note?.trim() || null;
+    /**
+     * A published mark cannot be edited in place.
+     *
+     * The student has already been told this number. Changing it underneath them should
+     * cost a deliberate withhold first, so nobody silently rewrites a result somebody is
+     * acting on. Withholding rather than a dedicated unpublish, because it leaves the
+     * student a sentence instead of a mark that quietly disappears.
+     *
+     * Enforced here rather than only in the UI — the route is public.
+     */
+    if (existing?.status === 'PUBLISHED') {
+      throw new ConflictError(
+        'This result is published. Withhold it before changing the grade.',
+      );
+    }
+
+    // An existing note still explains the mark, so correcting an absent grade from 0 to 5
+    // does not demand the reason be typed again. The rule is that a grade against no
+    // submission carries a reason — not that every edit restates it.
+    const note = data.note?.trim() || existing?.note || null;
     if (!submitted && !note) {
       throw new ValidationError('The submitted data is invalid.', {
         note: ['There is no submission. Record why a grade is being given, e.g. "Absent".'],
@@ -129,14 +153,23 @@ export const resultService = {
     }
 
     const publishing = data.action === 'PUBLISH';
+
     const row = await resultRepo.setStatus({
       studentId: data.studentId,
       assessmentId: data.assessmentId,
       status: publishing ? 'PUBLISHED' : 'WITHHELD',
-      withheldReason: publishing ? null : data.withheldReason!.trim(),
-      // The first publication timestamps it; re-publishing an edited mark keeps the
-      // original date, which is what the student was told.
-      publishedAt: publishing ? (existing.publishedAt ?? new Date()) : null,
+      // Optional for staff, never absent for the student.
+      withheldReason: publishing
+        ? null
+        : data.withheldReason?.trim() || DEFAULT_WITHHOLD_REASON,
+      /**
+       * `publishedAt` survives a withhold on purpose. It is the date this mark was first
+       * shown to the student, and clearing it would erase the fact that they ever saw it
+       * — which is what makes a later correction worth flagging, and what keeps their
+       * submission locked while the correction happens. The first publication timestamps
+       * it and every later release keeps that date.
+       */
+      publishedAt: existing.publishedAt ?? (publishing ? new Date() : null),
     });
 
     return toResultEntry(row)!;

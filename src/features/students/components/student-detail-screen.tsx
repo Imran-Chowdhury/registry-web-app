@@ -16,7 +16,13 @@ import { StudentForm } from './student-form';
 import { StudentRecordCard } from './student-record-card';
 import { statusLabel } from './status-badge';
 
-const TABS = ['Fees', 'Submissions', 'Results', 'History'] as const;
+/**
+ * No Submissions tab. Coursework is read per assessment on the marking screen, where the
+ * deadline, the late flag and the rest of the cohort give it meaning — a list of one
+ * student's files, detached from what they were due against, answered no question the
+ * marking queue does not answer better.
+ */
+const TABS = ['Fees', 'Results', 'History'] as const;
 type Tab = (typeof TABS)[number];
 
 export function StudentDetailScreen({
@@ -106,13 +112,8 @@ export function StudentDetailScreen({
               <FeePanel studentId={student.id} />
             ) : tab === 'Results' ? (
               <StudentResultsTab studentId={student.id} />
-            ) : tab === 'History' ? (
-              <StatusHistory student={student} />
             ) : (
-              <EmptyState
-                title="Submissions are listed on each assessment."
-                description="Open an assessment to see this student's attempts, lateness, and files."
-              />
+              <StatusHistory student={student} />
             )}
           </div>
         </section>

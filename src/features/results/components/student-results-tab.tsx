@@ -101,8 +101,14 @@ export function StudentResultsTab({ studentId }: { studentId: string }) {
                 {result.status === 'WITHHELD' && <Badge tone="alert">Withheld</Badge>}
                 {result.status === 'DRAFT' && <Badge>Draft</Badge>}
 
+                {/*
+                  `publishedAt` outlives an unpublish — it records that the student was
+                  once shown this mark — so a date on a draft is labelled as history
+                  rather than passed off as a current release.
+                */}
                 {result.publishedAt && (
                   <span className="font-mono text-xs text-muted">
+                    {result.status === 'PUBLISHED' ? '' : 'previously published '}
                     {formatDate(result.publishedAt)}
                   </span>
                 )}

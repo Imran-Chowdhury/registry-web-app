@@ -32,7 +32,11 @@ const assessmentSelect = {
     },
     orderBy: { attempt: 'desc' as const },
   },
-  results: { select: { studentId: true, grade: true, status: true } },
+  results: {
+    // `publishedAt` outlives an unpublish, so it is what tells the submission rules that
+    // a student has been shown this mark at some point — see `submission.service.ts`.
+    select: { studentId: true, grade: true, status: true, publishedAt: true },
+  },
 } satisfies Prisma.AssessmentSelect;
 
 export type AssessmentRow = Prisma.AssessmentGetPayload<{

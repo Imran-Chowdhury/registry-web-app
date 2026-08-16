@@ -38,6 +38,7 @@ export const submissionService = {
         deadline: assessment.deadline,
         maxAttempts: assessment.maxAttempts,
         attemptCount: attempts.length,
+        hasReleasedResult: hasReleasedResult(assessment, viewer.studentId),
       });
 
       return {
@@ -91,6 +92,7 @@ export const submissionService = {
       deadline: assessment.deadline,
       maxAttempts: assessment.maxAttempts,
       attemptCount,
+      hasReleasedResult: hasReleasedResult(assessment, viewer.studentId),
     });
     if (block) throw new ConflictError(block);
 
@@ -133,10 +135,40 @@ export const submissionService = {
 };
 
 /**
+ * Whether this student has ever been shown a mark for the assessment.
+ *
+ * Keyed on `publishedAt` rather than on the current status, because a result that is
+ * momentarily back in `DRAFT` while staff correct a grade has still been seen. Keying on
+ * status would reopen uploads for exactly the window in which someone is fixing the mark,
+ * and the student could swap the file underneath it.
+ *
+ * Keyed on `publishedAt` rather than on "has a grade", too: a draft grade entered while
+ * the deadline is still open must not block the resubmission the brief allows. Only a
+ * mark the student has actually seen closes the work.
+ *
+ * Read from the assessment row the caller already loaded — the assessments repository
+ * selects results for its own marked/unmarked counts, so this costs no extra query and
+ * needs no import from the results feature, which would make the two features depend on
+ * each other in both directions.
+ */
+function hasReleasedResult(
+  assessment: { results: { studentId: string; publishedAt: Date | null }[] },
+  studentId: string,
+): boolean {
+  return assessment.results.some(
+    (result) => result.studentId === studentId && result.publishedAt !== null,
+  );
+}
+
+/**
  * Why a submission would be refused, or null if it would be accepted.
  *
  * The rules, in the order they are checked:
  *  - a withdrawn student cannot submit work at all;
+ *  - once a mark has been released to the student the work is closed, and stays closed
+ *    while staff take it back to correct it: replacing the file a grade was awarded
+ *    against would leave that grade describing a document nobody marked. Checked before
+ *    the deadline rules, because it holds whether or not the deadline has passed;
  *  - a first submission after the deadline is accepted, and flagged late — work handed
  *    in late is still work, and the registry needs the record;
  *  - a *replacement* after the deadline is refused, because the brief allows resubmission
@@ -148,6 +180,7 @@ function blockedReason(input: {
   deadline: Date;
   maxAttempts: number;
   attemptCount: number;
+  hasReleasedResult: boolean;
 }): string | null {
   const { studentStatus, deadline, maxAttempts, attemptCount } = input;
 
@@ -156,6 +189,9 @@ function blockedReason(input: {
   }
   if (studentStatus === 'COMPLETED') {
     return 'This programme is complete. Contact the Registry office.';
+  }
+  if (input.hasReleasedResult) {
+    return 'This assessment has been marked and released. Your submission can no longer be changed.';
   }
 
   const closed = deadline.getTime() < Date.now();

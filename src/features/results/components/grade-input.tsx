@@ -17,13 +17,9 @@ import { gradeSchema } from '../schema';
  */
 export function GradeInput({
   grade,
-  disabled,
-  disabledReason,
   onCommit,
 }: {
   grade: number | null;
-  disabled?: boolean;
-  disabledReason?: string;
   onCommit: (grade: number) => void;
 }) {
   const committed = grade === null ? '' : String(grade);
@@ -68,11 +64,9 @@ export function GradeInput({
       <Input
         mono
         value={draft}
-        disabled={disabled}
         invalid={Boolean(error)}
         inputMode="numeric"
         aria-label="Grade out of 100"
-        title={disabled ? disabledReason : undefined}
         className="h-8 w-14 px-1 text-center"
         onChange={(event) => setDraft(event.target.value)}
         onBlur={commit}

@@ -232,6 +232,29 @@ flagged with the exact delay in both views. A withdrawn student cannot submit.
   with a reason attached, and a bulk action does not overwrite it
 - Bulk publish **withholds** students in arrears rather than skipping them: skipping
   leaves them in `DRAFT`, which tells the student nothing
+- **A released mark closes the work.** No submission or replacement is accepted once a
+  student has been shown a grade, deadline or not — replacing the file afterwards would
+  leave that grade describing a document nobody marked. Keyed on `publishedAt`, not on
+  the current status, so the work stays closed while staff take a result back to correct
+  it; and not on "has a grade", so a draft mark entered before the deadline still leaves
+  the resubmission the brief allows
+- **Grading a non-submitter is behind a deliberate action**, not the inline grade box:
+  `Record as absent` captures the mark and a required reason together. Absence stays
+  recordable — a student left permanently `Unmarked` drops silently out of their own
+  average — but it cannot happen by tabbing into the wrong row. Correcting the mark later
+  does not re-ask for the reason; the stored one still explains it
+- **A published grade is not editable in place.** Changing one takes an explicit withhold
+  first, so nobody silently rewrites a number a student is already acting on. There is no
+  separate `Unpublish` action: returning a result to `DRAFT` would make it vanish from the
+  marksheet without explanation, which is the silence withholding exists to replace, so
+  the two jobs share one control. `publishedAt` survives the withhold — it records that
+  the student was once shown the mark — and republishing keeps the original date rather
+  than pretending the result is new
+- **The withhold reason is optional to type and never absent from what the student
+  reads.** The dialog opens on a neutral default suited to a correction; blank falls back
+  to it server-side. Staff overwrite it when the real reason is arrears or misconduct
+- **No Submissions tab on the student record.** Coursework is read per assessment on the
+  marking screen, where the deadline and the rest of the cohort give it meaning
 
 **Done when:** a staff member can grade, withhold with a reason, and the student sees
 "withheld + reason" rather than a blank — and publishing a result for an overdue student
