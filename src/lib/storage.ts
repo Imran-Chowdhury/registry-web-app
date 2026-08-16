@@ -5,7 +5,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import { ValidationError } from './errors';
-import { formatBytes } from './file-size';
+import { MAX_FILE_BYTES, formatBytes } from './file-size';
 
 /**
  * Local-disk storage adapter.
@@ -15,7 +15,7 @@ import { formatBytes } from './file-size';
  * S3 or Vercel Blob replaces the two functions below and nothing else.
  */
 
-export const MAX_FILE_BYTES = 10 * 1024 * 1024;
+export { MAX_FILE_BYTES };
 
 const UPLOAD_ROOT = path.join(process.cwd(), 'uploads');
 
