@@ -314,27 +314,27 @@ warns first.
 **Budget:** 3–4 hours. Do not compress this into an hour.
 
 **Seed** — `prisma/seed.ts`, idempotent, `npm run db:seed`
-- [ ] 2 programmes at different fees (CSE $100, BBA $50); 4+ modules; 6+ assessments with
+- [x] 2 programmes at different fees (CSE $100, BBA $50); 4+ modules; 6+ assessments with
       past, imminent, and future deadlines
-- [ ] 8+ students across both programmes, covering **every** enrolment status
-- [ ] **Backdated `createdAt`** on several students so the 30-day window has elapsed —
+- [x] 8+ students across both programmes, covering **every** enrolment status
+- [x] **Backdated `createdAt`** on several students so the 30-day window has elapsed —
       without this nothing is overdue on a fresh seed and the dashboard looks broken
-- [ ] Fees producing: paid in full, partially paid, not yet due, overdue
-- [ ] One reversed payment
-- [ ] Submissions: on time, late, resubmitted (2 attempts), missing
-- [ ] Results: unmarked, draft, published, withheld-with-reason
-- [ ] **One student who is both overdue and awaiting publication** — the demo case
+- [x] Fees producing: paid in full, partially paid, not yet due, overdue
+- [x] One reversed payment
+- [x] Submissions: on time, late, resubmitted (2 attempts), missing
+- [x] Results: unmarked, draft, published, withheld-with-reason
+- [x] **One student who is both overdue and awaiting publication** — the demo case
 
 **States**
-- [ ] Every list has loading skeleton / empty / error, with copy written per screen
-- [ ] Every mutation has a toast; verb matches the button
-- [ ] Confirm dialogs on publish, payment, status change, replace submission
-- [ ] Form errors inline and specific; submit disabled while pending
+- [x] Every list has loading skeleton / empty / error, with copy written per screen
+- [x] Every mutation has a toast; verb matches the button
+- [x] Confirm dialogs on publish, payment, status change, replace submission
+- [x] Form errors inline and specific; submit disabled while pending
 
 **Polish**
-- [ ] Remove every `console.log`
-- [ ] `npm run build` passes with no type errors and no `any`
-- [ ] Clean clone test: `git clone` → install → migrate → seed → dev works
+- [x] Remove every `console.log`
+- [x] `npm run build` passes with no type errors and no `any`
+- [x] Clean clone test: `git clone` → install → migrate → seed → dev works
 
 ---
 
@@ -342,21 +342,20 @@ warns first.
 
 **Goal:** 45% of the score. **Budget: a half-day, non-negotiable.**
 
-- [ ] What this is + 2–3 screenshots
-- [ ] Setup: prerequisites, `.env` variables, install → migrate → seed → dev
-- [ ] **Demo guide** — walk the reviewer to the interesting cases: *"switch to Rafi Hasan
+- [x] Setup: prerequisites, `.env` variables, install → migrate → seed → dev
+- [x] **Demo guide** — walk the reviewer to the interesting cases: *"switch to Rafi Hasan
       to see an overdue account; switch to Sadia Islam to see a withheld result"*
-- [ ] **Product decisions** — every rule from CLAUDE.md §12 with its reasoning. Fee
+- [x] **Product decisions** — every rule from CLAUDE.md §12 with its reasoning. Fee
       snapshotting, overdue definition, versioned submissions, draft vs withheld, computed
       classification, no hard deletes
-- [ ] **Assumptions & questions raised** — the four questions sent to the recruiters and
+- [x] **Assumptions & questions raised** — the four questions sent to the recruiters and
       the assumption built against each
-- [ ] **Architecture** — folder structure, four layers, why identity is stubbed, why the
+- [x] **Architecture** — folder structure, four layers, why identity is stubbed, why the
       UI is hand-built Tailwind
-- [ ] **Scope decisions** — desktop-only layouts, local file storage, no auth
-- [ ] **AI usage** — specific: which tools, which parts, what you accepted, what you
+- [x] **Scope decisions** — desktop-only layouts, local file storage, no auth
+- [x] **AI usage** — specific: which tools, which parts, what you accepted, what you
       rejected and why, what you reviewed manually. Vague answers score nothing here
-- [ ] **What I'd do next** — auth, S3, tests, audit log, bulk import
+- [x] **What I'd do next** — auth, S3, tests, audit log, bulk import
 - [ ] Final commit, push, verify the repo is public and clean
 
 ---
