@@ -1,8 +1,8 @@
 'use client';
 
-import { useActionState, useState, type ChangeEvent } from 'react';
+import { startTransition, useActionState, useState, type ChangeEvent } from 'react';
 
-import { Badge, Button, EmptyState } from '@/components/ui';
+import { Badge, Button, ConfirmDialog, EmptyState } from '@/components/ui';
 import { formatDateTime, formatDelayLong, relativeToNow } from '@/lib/dates';
 import { MAX_FILE_BYTES, formatBytes } from '@/lib/file-size';
 import { cn } from '@/lib/utils';
@@ -86,6 +86,15 @@ function AssessmentCard({
     }
   }
 
+  /**
+   * Replacing is confirmed; a first submission is not.
+   *
+   * A replacement supersedes work already on record and cannot be taken back once the
+   * deadline passes, so the consequence is stated at the only moment it is actionable.
+   * Asking the same question of an empty slot would be noise.
+   */
+  const [replacing, setReplacing] = useState<FormData | null>(null);
+
   const latest = assessment.latest;
   const late = latest?.isLate ?? false;
 
@@ -152,7 +161,16 @@ function AssessmentCard({
       )}
 
       {assessment.canSubmit ? (
-        <form action={formAction} className="mt-4 space-y-2">
+        <form
+          action={formAction}
+          onSubmit={(event) => {
+            // First submission goes straight through; a replacement is confirmed first.
+            if (!latest) return;
+            event.preventDefault();
+            setReplacing(new FormData(event.currentTarget));
+          }}
+          className="mt-4 space-y-2"
+        >
           <input type="hidden" name="assessmentId" value={assessment.id} />
 
           {/* Accepted types and the cap are stated up front, not discovered on failure. */}
@@ -211,6 +229,30 @@ function AssessmentCard({
             {assessment.blockedReason}
           </p>
         )
+      )}
+
+      {latest && (
+        <ConfirmDialog
+          open={replacing !== null}
+          onClose={() => setReplacing(null)}
+          title="Replace your submission?"
+          description={`This becomes attempt ${latest.attempt + 1}. Your marker sees the new file, and the deadline is ${formatDateTime(assessment.deadline)}.`}
+          confirmLabel="Replace submission"
+          pending={pending}
+          onConfirm={() => {
+            if (!replacing) return;
+            const formData = replacing;
+            setReplacing(null);
+            // Outside a form submission, so the action needs its own transition to keep
+            // `pending` reporting the upload rather than snapping back to idle.
+            startTransition(() => formAction(formData));
+          }}
+        >
+          <p className="text-xs text-muted">
+            Replacing <span className="font-mono">{latest.fileName}</span>, submitted{' '}
+            {formatDateTime(latest.submittedAt)}. Earlier attempts stay on record.
+          </p>
+        </ConfirmDialog>
       )}
     </article>
   );

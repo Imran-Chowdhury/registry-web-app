@@ -7,6 +7,7 @@ import { Money } from '@/components/shared/money';
 import {
   Badge,
   Button,
+  ConfirmDialog,
   EmptyState,
   SkeletonTable,
   TBody,
@@ -46,6 +47,7 @@ const FILTER_LABELS: Record<MarkingFilter, string> = {
 export function MarkingQueue({ assessmentId }: { assessmentId: string }) {
   const [filter, setFilter] = useState<MarkingFilter>('ALL');
   const [withholding, setWithholding] = useState<MarkingRow | null>(null);
+  const [publishing, setPublishing] = useState<MarkingRow | null>(null);
   const [absentFor, setAbsentFor] = useState<MarkingRow | null>(null);
   const [publishAllOpen, setPublishAllOpen] = useState(false);
 
@@ -287,13 +289,10 @@ export function MarkingQueue({ assessmentId }: { assessmentId: string }) {
                     <ResultCell
                       row={row}
                       pending={setStatus.isPending}
-                      onPublish={() =>
-                        setStatus.mutate({
-                          assessmentId,
-                          studentId: row.studentId,
-                          action: 'PUBLISH',
-                        })
-                      }
+                      onPublish={() => {
+                        setStatus.reset();
+                        setPublishing(row);
+                      }}
                       onWithhold={() => {
                         setStatus.reset();
                         setWithholding(row);
@@ -313,6 +312,54 @@ export function MarkingQueue({ assessmentId }: { assessmentId: string }) {
         open={publishAllOpen}
         onClose={() => setPublishAllOpen(false)}
       />
+
+      {/*
+        Releasing a mark is a one-way act from the student's side — they are told a
+        number and start acting on it — so it is confirmed rather than fired on a click
+        that could as easily have been aimed at the row above. The arrears line is
+        repeated here because this is the last moment it can change the decision.
+      */}
+      <ConfirmDialog
+        open={publishing !== null}
+        onClose={() => setPublishing(null)}
+        title="Publish this result?"
+        description="The student sees the grade and its classification immediately. Changing it afterwards means withholding it first."
+        confirmLabel="Publish"
+        pending={setStatus.isPending}
+        onConfirm={() => {
+          if (!publishing) return;
+          setStatus.mutate(
+            {
+              assessmentId,
+              studentId: publishing.studentId,
+              action: 'PUBLISH',
+            },
+            { onSuccess: () => setPublishing(null) },
+          );
+        }}
+      >
+        {publishing && (
+          <div className="space-y-2 text-xs">
+            <p>
+              <span className="font-mono">{publishing.studentCode}</span> ·{' '}
+              {publishing.studentName} — grade{' '}
+              <span className="font-mono">{publishing.result?.grade}</span>
+              {publishing.result?.classification && ` · ${publishing.result.classification}`}
+            </p>
+
+            {publishing.arrears && (
+              <p className="rounded-control border border-alert/30 bg-alert/10 px-3 py-2 text-alert">
+                ⚠ This student owes{' '}
+                <Money alert minor={publishing.arrears.outstandingMinor} />, overdue by{' '}
+                {publishing.arrears.daysOverdue} days. Registries commonly withhold
+                results for arrears — withhold instead if that applies here.
+              </p>
+            )}
+
+            {setStatus.isError && <p className="text-alert">{setStatus.error.message}</p>}
+          </div>
+        )}
+      </ConfirmDialog>
 
       <AbsentDialog
         open={absentFor !== null}
