@@ -391,6 +391,15 @@ const PAYMENTS: {
     paidAt: ago(20),
     reference: 'BANK-2026-0302',
   },
+  {
+    // Paid something, still short, and still past the due date. "Overdue" has to survive a
+    // part payment — a naive "has this student paid?" check clears him the moment any
+    // money arrives, which is the wrong answer for the account chasing him.
+    studentKey: 'rafi',
+    amountMinor: 3_000,
+    paidAt: ago(30),
+    reference: 'BANK-2026-0288',
+  },
 ];
 
 // ---------------------------------------------------------------------------
@@ -440,7 +449,7 @@ const SUBMISSIONS: {
     kind: 'pdf',
   },
 
-  // Final Project — deadline 5 days ago, still open, nothing marked.
+  // Final Project — deadline 5 days ago, still open, one result released of three.
   {
     // Replaced before the deadline: attempt 1 stays for audit, attempt 2 is active.
     studentKey: 'tanvir',
@@ -628,7 +637,17 @@ const RESULTS: {
     note: 'Absent, did not sit the assessment. Confirmed with the module leader.',
   },
 
-  // Reflective Essay — marked early and released, so one marksheet has an average.
+  // Final Project — one released, the rest still unmarked. A marking queue is rarely
+  // finished in one sitting, and a part-marked assessment is the state staff actually see.
+  {
+    studentKey: 'aisha',
+    assessmentKey: 'final-project',
+    grade: 80,
+    status: 'PUBLISHED',
+    publishedAt: ago(2),
+  },
+
+  // Reflective Essay — marked early and released, so one marksheet averages three results.
   {
     studentKey: 'aisha',
     assessmentKey: 'reflective-essay',

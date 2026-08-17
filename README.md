@@ -103,20 +103,21 @@ Start as **Staff**.
 
 ### 1. The dashboard answers "what needs me today"
 
-`/dashboard` — 7 enrolled, **$310.00 outstanding**, **4 overdue**, 4 awaiting marking. The
+`/dashboard` — 7 enrolled, **$280.00 outstanding**, **4 overdue**, 3 awaiting marking. The
 overdue table is sorted worst-first: 90 days, 45, 32, 18. The overdue tile turns red only
 when the count is above zero, so one glance says whether today is a chasing day.
 
 ### 2. The case the whole build is pointed at — Rafi Hasan
 
-Click **SMS-2026-0001** in the overdue table. He owes the full $100 and is 45 days past
+Click **SMS-2026-0001** in the overdue table. He has paid part of his $100 fee and still
+owes **$70.00**, 45 days past
 his due date.
 
 Now go to **Assessments → Midterm Report**. His row shows three things at once:
 
 - his submission was **2d 16h late**,
 - his grade of **62** is still a **Draft**, so he has never seen it,
-- **⚠ $100.00 overdue · 45 days**, in the row itself.
+- **⚠ $70.00 overdue · 45 days**, in the row itself.
 
 Press **Publish**. The confirmation repeats the arrears before releasing the mark.
 Surfacing a fee balance at the moment a result is released — rather than on some other
@@ -134,7 +135,8 @@ Switch the banner to **Student**, then pick each of these:
 |---|---|
 | **Sadia Islam** (SMS-2025-0002) | Nothing published, and a **Not yet available** section: *Result withheld — outstanding balance on your account.* She knows a result exists and why she cannot see it. |
 | **Rafi Hasan** (SMS-2026-0001) | Nothing at all. His 62 is still a draft, and a draft is invisible — not greyed out, not "pending", simply absent. |
-| **Aisha Rahman** (SMS-2025-0001) | Two published results and an average of **81.5 · Distinction**, with "across 2 published results" stated so the number cannot mislead. |
+| **Aisha Rahman** (SMS-2025-0001) | Three published results and an average of **81 · Distinction**, with "across 3 published results" stated so the number cannot mislead. |
+| **Farhana Akter** (SMS-2025-0004) | One published result — 76, Distinction — and the average that goes with it, pictured below. |
 
 That contrast between Sadia and Rafi is the point of the withhold feature, and it is the
 part most implementations blur.
