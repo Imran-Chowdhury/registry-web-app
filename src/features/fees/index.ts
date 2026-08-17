@@ -3,7 +3,7 @@
  * because they are `server-only` and this module is reachable from client components.
  */
 
-export { computeFeeSummary } from './fee-math';
+export { computeFeeSummary, isFeeOverdue, outstandingMinorOf } from './fee-math';
 
 export {
   paymentFormSchema,

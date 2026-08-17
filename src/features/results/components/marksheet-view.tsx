@@ -47,10 +47,10 @@ export function MarksheetView({ marksheet }: { marksheet: Marksheet }) {
             </span>
           </div>
           {/* The count is stated so the average cannot mislead. */}
-          {/* <p className="mt-2 text-sm text-muted">
+          <p className="mt-2 text-sm text-muted">
             Across {publishedCount} published {publishedCount === 1 ? 'result' : 'results'}.
-            Withheld and unmarked work is excluded.
-          </p> */}
+            {/* Withheld and unmarked work is excluded. */}
+          </p>
         </section>
       )}
 

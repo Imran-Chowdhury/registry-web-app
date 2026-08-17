@@ -53,9 +53,9 @@ export function DemoBanner({
           pending && 'opacity-70',
         )}
       >
-        <span className="font-mono text-xs tracking-widest text-paper/70 uppercase">
+        {/* <span className="font-mono text-xs tracking-widest text-paper/70 uppercase">
           Demo mode
-        </span>
+        </span> */}
 
         <label className="flex items-center gap-2 text-xs text-paper/70">
           Viewing as

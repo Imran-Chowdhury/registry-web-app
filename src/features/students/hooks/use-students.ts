@@ -1,6 +1,11 @@
 'use client';
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 
 import type { HttpError } from '@/lib/http';
@@ -11,15 +16,18 @@ import { studentKeys } from '../api/keys';
 import type {
   ChangeStatusInput,
   CreateStudentInput,
-  StudentFilters,
+  StudentQuery,
   UpdateStudentInput,
 } from '../schema';
 import type { StudentDetail } from '../types';
 
-export function useStudents(filters: StudentFilters) {
+export function useStudents(query: StudentQuery) {
   return useQuery({
-    queryKey: studentKeys.list(filters),
-    queryFn: () => studentsApi.list(filters),
+    queryKey: studentKeys.list(query),
+    queryFn: () => studentsApi.list(query),
+    // Keeps the current page on screen while the next one loads. Without it the table
+    // collapses to a skeleton on every page click, which reads as the list breaking.
+    placeholderData: keepPreviousData,
   });
 }
 

@@ -64,8 +64,15 @@ function AccountsPanel({ summary }: { summary: DashboardSummary }) {
         <h2 className="text-base font-semibold">
           {overdue ? 'Overdue accounts' : 'Largest outstanding balances'}
         </h2>
-        <Link href="/students" className="text-xs underline underline-offset-2">
-          View all students →
+        {/* The panel shows the worst few; the link carries the filter so the rest are one
+            click away rather than buried in an unfiltered list of the whole registry. */}
+        <Link
+          href={overdue ? '/students?overdue=true' : '/students'}
+          className="text-xs underline underline-offset-2"
+        >
+          {overdue
+            ? `View all ${summary.overdueCount} overdue →`
+            : 'View all students →'}
         </Link>
       </div>
 

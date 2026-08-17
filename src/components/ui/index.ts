@@ -5,6 +5,7 @@ export { ConfirmDialog, Dialog } from './dialog';
 export { EmptyState } from './empty-state';
 export { FormError } from './form-error';
 export { Field, Input, fieldClasses } from './input';
+export { Pagination, pageWindow, type PageSlot } from './pagination';
 export { Select } from './select';
 export { Skeleton, SkeletonTable } from './skeleton';
 export { TBody, TD, TH, THead, TR, Table, TableCaption } from './table';

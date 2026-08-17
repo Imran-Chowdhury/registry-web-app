@@ -26,12 +26,14 @@ export const dashboardService = {
       throw new ForbiddenError('The registry dashboard is for staff.');
     }
 
+    // `listAll`, not `list`: the tiles total the registry and the panel ranks the biggest
+    // balances in it. Handed a page, both would return confident nonsense.
     const [students, assessments] = await Promise.all([
-      studentService.list(viewer, {}),
+      studentService.listAll(viewer, {}),
       assessmentService.list(viewer),
     ]);
 
-    const owing: AccountBalance[] = students.students
+    const owing: AccountBalance[] = students
       .filter((student) => (student.fee?.outstandingMinor ?? 0) > 0)
       .map((student) => ({
         studentId: student.id,
@@ -57,11 +59,11 @@ export const dashboardService = {
 
     // Withdrawn students keep their fee history but are not who the registry chases
     // today, so they are counted in the money and not in the enrolled headcount.
-    const enrolledCount = students.students.filter(
+    const enrolledCount = students.filter(
       (student) => student.status === 'ENROLLED',
     ).length;
 
-    const totalOutstandingMinor = students.students.reduce(
+    const totalOutstandingMinor = students.reduce(
       (total, student) => total + Math.max(0, student.fee?.outstandingMinor ?? 0),
       0,
     );

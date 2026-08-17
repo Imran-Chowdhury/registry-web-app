@@ -3,21 +3,23 @@ import { http } from '@/lib/http';
 import type {
   ChangeStatusInput,
   CreateStudentInput,
-  StudentFilters,
+  StudentQuery,
   UpdateStudentInput,
 } from '../schema';
 import type { StudentDetail, StudentListResult } from '../types';
 
 /** Fetch calls only. No React, no cache concerns — those belong to the hooks. */
 export const studentsApi = {
-  list(filters: StudentFilters) {
+  list(query: StudentQuery) {
     const params = new URLSearchParams();
-    if (filters.search) params.set('search', filters.search);
-    if (filters.programmeId) params.set('programmeId', filters.programmeId);
-    if (filters.status) params.set('status', filters.status);
+    if (query.search) params.set('search', query.search);
+    if (query.programmeId) params.set('programmeId', query.programmeId);
+    if (query.status) params.set('status', query.status);
+    if (query.overdue) params.set('overdue', 'true');
+    params.set('page', String(query.page));
+    params.set('pageSize', String(query.pageSize));
 
-    const query = params.toString();
-    return http.get<StudentListResult>(`/api/students${query ? `?${query}` : ''}`);
+    return http.get<StudentListResult>(`/api/students?${params.toString()}`);
   },
 
   get(id: string) {

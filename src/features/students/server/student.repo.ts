@@ -53,14 +53,45 @@ const detailSelect = {
   },
 } satisfies Prisma.StudentSelect;
 
+/**
+ * Fee fields only, for counting arrears across a filtered set without paying for the
+ * names, emails, and programme joins the list rows carry. Overdue is not a column and
+ * cannot be — it depends on `computeFeeSummary`, which is the only definition of a
+ * balance — so the rows have to be read. They may as well be small.
+ */
+const feeOnlySelect = {
+  fees: {
+    select: {
+      amountMinor: true,
+      waivedMinor: true,
+      dueDate: true,
+      payments: {
+        where: { status: 'COMPLETED' as const },
+        select: { amountMinor: true },
+      },
+    },
+    orderBy: { dueDate: 'asc' as const },
+  },
+} satisfies Prisma.StudentSelect;
+
 export type StudentListRow = Prisma.StudentGetPayload<{ select: typeof listSelect }>;
 export type StudentDetailRow = Prisma.StudentGetPayload<{ select: typeof detailSelect }>;
+export type StudentFeeRow = Prisma.StudentGetPayload<{ select: typeof feeOnlySelect }>;
 
 function whereFrom(filters: StudentFilters): Prisma.StudentWhereInput {
   const where: Prisma.StudentWhereInput = {};
 
   if (filters.status) where.status = filters.status;
   if (filters.programmeId) where.programmeId = filters.programmeId;
+
+  // Only the date half of "overdue" is pushed down here. It is a plain column comparison
+  // with no arithmetic in it, so it duplicates nothing — while a SQL predicate for the
+  // money half would be a second definition of the balance, and the first time one
+  // changed the list would start disagreeing with the fee panel about the same student.
+  // The service applies the money half with `computeFeeSummary`.
+  if (filters.overdue) {
+    where.fees = { some: { dueDate: { lt: new Date() } } };
+  }
 
   // Search covers the three identifiers an admin actually has to hand: a name they were
   // told, a code on a form, or an email from a message.
@@ -76,12 +107,44 @@ function whereFrom(filters: StudentFilters): Prisma.StudentWhereInput {
 }
 
 export const studentRepo = {
+  /**
+   * Every match, unpaginated. For the dashboard, which ranks and totals the whole
+   * registry — a page of it would produce plausible-looking wrong numbers.
+   */
   async findMany(filters: StudentFilters): Promise<StudentListRow[]> {
     return db.student.findMany({
       where: whereFrom(filters),
       select: listSelect,
       orderBy: { studentCode: 'asc' },
     });
+  },
+
+  /**
+   * One page, its total, and the fee rows behind the arrears count — in a single
+   * transaction so the three cannot disagree about which students exist.
+   *
+   * Ordered by `studentCode`, which is sequential and unique. Ordering a paginated query
+   * by anything non-unique lets a row appear on two pages or on none.
+   */
+  async findPage(
+    filters: StudentFilters,
+    page: { take: number; skip: number },
+  ): Promise<{ rows: StudentListRow[]; total: number; feeRows: StudentFeeRow[] }> {
+    const where = whereFrom(filters);
+
+    const [rows, total, feeRows] = await db.$transaction([
+      db.student.findMany({
+        where,
+        select: listSelect,
+        orderBy: { studentCode: 'asc' },
+        take: page.take,
+        skip: page.skip,
+      }),
+      db.student.count({ where }),
+      db.student.findMany({ where, select: feeOnlySelect }),
+    ]);
+
+    return { rows, total, feeRows };
   },
 
   findById(id: string): Promise<StudentDetailRow | null> {

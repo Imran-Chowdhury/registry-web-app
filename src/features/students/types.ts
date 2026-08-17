@@ -40,11 +40,21 @@ export type StudentDetail = StudentListItem & {
 };
 
 export type StudentListResult = {
+  /** One page of rows, not the whole match. */
   students: StudentListItem[];
-  /** Total matching the current filters, for the result count line. */
+  /** Total matching the current filters, across every page. */
   total: number;
-  /** Of those, how many are overdue — the number an admin actually scans for. */
+  /**
+   * Of those, how many are overdue — the number an admin actually scans for.
+   *
+   * Counted across the whole filtered set, not the current page. "12 overdue" that
+   * silently meant "12 overdue on page 1" would be worse than not showing it.
+   */
   overdueCount: number;
+  page: number;
+  pageSize: number;
+  /** At least 1, so an empty result still renders a coherent pager. */
+  totalPages: number;
 };
 
 /** The switcher's options, resolved server-side. */

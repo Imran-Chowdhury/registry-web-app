@@ -1,4 +1,4 @@
-import type { StudentFilters } from '../schema';
+import type { StudentQuery } from '../schema';
 
 /**
  * The only place a students query key is written. String literals scattered across hooks
@@ -7,7 +7,8 @@ import type { StudentFilters } from '../schema';
 export const studentKeys = {
   all: ['students'] as const,
   lists: () => [...studentKeys.all, 'list'] as const,
-  list: (filters: StudentFilters) => [...studentKeys.lists(), filters] as const,
+  /** Page is part of the key: each page is its own cache entry, not a replacement. */
+  list: (query: StudentQuery) => [...studentKeys.lists(), query] as const,
   details: () => [...studentKeys.all, 'detail'] as const,
   detail: (id: string) => [...studentKeys.details(), id] as const,
 };

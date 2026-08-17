@@ -1,7 +1,8 @@
 import 'server-only';
 
-import { computeFeeSummary } from '@/features/fees';
+import { computeFeeSummary, isFeeOverdue } from '@/features/fees';
 import { programmeService } from '@/features/programmes/server';
+import { academicSession } from '@/lib/academic-session';
 import { ConflictError, ForbiddenError, NotFoundError } from '@/lib/errors';
 import { nextStudentCode } from '@/lib/student-id';
 import type { Viewer } from '@/lib/viewer';
@@ -10,6 +11,7 @@ import type {
   ChangeStatusInput,
   CreateStudentInput,
   StudentFilters,
+  StudentQuery,
   UpdateStudentInput,
 } from '../schema';
 import { createStudentSchema, updateStudentSchema, changeStatusSchema } from '../schema';
@@ -36,17 +38,58 @@ export const studentService = {
    * returning a filtered list instead of refusing would leave the door open to counting
    * other records.
    */
-  async list(viewer: Viewer, filters: StudentFilters): Promise<StudentListResult> {
+  async list(viewer: Viewer, query: StudentQuery): Promise<StudentListResult> {
+    requireStaff(viewer);
+
+    const { page, pageSize, ...filters } = query;
+
+    if (filters.overdue) return listOverdue(filters, page, pageSize);
+
+    // Clamp rather than 404. Filtering down to three results while sitting on page six
+    // is an ordinary thing to do, and the honest answer is the last page, not an error.
+    const first = await studentRepo.findPage(filters, {
+      take: pageSize,
+      skip: (page - 1) * pageSize,
+    });
+
+    const totalPages = Math.max(1, Math.ceil(first.total / pageSize));
+    const safePage = Math.min(page, totalPages);
+
+    const { rows, total, feeRows } =
+      safePage === page
+        ? first
+        : await studentRepo.findPage(filters, {
+            take: pageSize,
+            skip: (safePage - 1) * pageSize,
+          });
+
+    return {
+      students: rows.map(toListItem),
+      total,
+      // Across every match, not this page — see `StudentListResult`.
+      overdueCount: feeRows.filter((row) => {
+        const fee = row.fees[0];
+        return fee ? isFeeOverdue(fee) : false;
+      }).length,
+      page: safePage,
+      pageSize,
+      totalPages,
+    };
+  },
+
+  /**
+   * Every match, unpaginated. Staff only, same as `list`.
+   *
+   * The dashboard's tiles total the registry and its panel ranks the largest balances,
+   * and neither survives being handed a page: "the three biggest debts among the first
+   * twenty-five student codes" is a number that looks right and is not. Separate method
+   * rather than a flag, so the choice is visible at the call site.
+   */
+  async listAll(viewer: Viewer, filters: StudentFilters): Promise<StudentListItem[]> {
     requireStaff(viewer);
 
     const rows = await studentRepo.findMany(filters);
-    const students = rows.map(toListItem);
-
-    return {
-      students,
-      total: students.length,
-      overdueCount: students.filter((student) => student.fee?.isOverdue).length,
-    };
+    return rows.map(toListItem);
   },
 
   async getById(viewer: Viewer, id: string): Promise<StudentDetail> {
@@ -190,6 +233,44 @@ function requireStaff(viewer: Viewer): void {
   }
 }
 
+/**
+ * The arrears list, paged in memory rather than in SQL.
+ *
+ * Deliberate, and the one place in the app where pagination is not pushed to the
+ * database. Overdue depends on `computeFeeSummary`, and expressing that as a `WHERE`
+ * would be a second definition of the balance — the exact drift CLAUDE.md §16 rules out.
+ * So the repository narrows on the date, which is a plain column and costs nothing, and
+ * the money half is applied here.
+ *
+ * The candidate set is students whose fee window has already elapsed, not the whole
+ * registry, and it shrinks rather than grows as fees are collected. If it ever stopped
+ * being small the answer is a materialised balance with its own invalidation, not a
+ * duplicated formula.
+ */
+async function listOverdue(
+  filters: StudentFilters,
+  page: number,
+  pageSize: number,
+): Promise<StudentListResult> {
+  const rows = await studentRepo.findMany(filters);
+  const overdue = rows.map(toListItem).filter((student) => student.fee?.isOverdue);
+
+  const total = overdue.length;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const safePage = Math.min(page, totalPages);
+  const start = (safePage - 1) * pageSize;
+
+  return {
+    students: overdue.slice(start, start + pageSize),
+    total,
+    // Every row here is overdue by definition, so the two counts are the same number.
+    overdueCount: total,
+    page: safePage,
+    pageSize,
+    totalPages,
+  };
+}
+
 function toListItem(row: StudentListRow): StudentListItem {
   // One fee assignment per student today. `fees` is a list because a programme change
   // will add a second in Phase 3; the earliest is the one a balance column refers to.
@@ -238,13 +319,4 @@ function withCompletedPaymentsOnly(fee: StudentListRow['fees'][number]) {
     dueDate: fee.dueDate,
     payments: fee.payments,
   };
-}
-
-/** "2026/27" — the session a fee belongs to, from the enrolment date. */
-function academicSession(date: Date): string {
-  const year = date.getUTCFullYear();
-  // Sessions run September to August, so an enrolment before September belongs to the
-  // session that started the previous calendar year.
-  const startYear = date.getUTCMonth() >= 8 ? year : year - 1;
-  return `${startYear}/${String((startYear + 1) % 100).padStart(2, '0')}`;
 }

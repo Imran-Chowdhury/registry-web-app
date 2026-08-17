@@ -1,12 +1,14 @@
 'use client';
 
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 import type { ProgrammeOption } from '@/features/programmes';
 import { Input, Select } from '@/components/ui';
+import { cn } from '@/lib/utils';
 
 import { ENROLMENT_STATUSES, type EnrolmentStatusValue } from '../schema';
-import { useHasActiveFilters, useStudentFilterStore } from '../store';
+import { useHasActiveFilters, useOverdueFilter, useStudentFilterStore } from '../store';
 import { statusLabel } from './status-badge';
 
 /**
@@ -20,8 +22,31 @@ export function StudentFilterBar({ programmes }: { programmes: ProgrammeOption[]
   const setSearch = useStudentFilterStore((state) => state.setSearch);
   const setProgrammeId = useStudentFilterStore((state) => state.setProgrammeId);
   const setStatus = useStudentFilterStore((state) => state.setStatus);
+  const setPage = useStudentFilterStore((state) => state.setPage);
   const clear = useStudentFilterStore((state) => state.clear);
   const hasFilters = useHasActiveFilters();
+
+  const overdue = useOverdueFilter();
+  const router = useRouter();
+  const pathname = usePathname();
+  const params = useSearchParams();
+
+  /**
+   * Writes the URL, not the store — the arrears filter is linkable, so the URL owns it.
+   * `replace` rather than `push`: toggling a filter four times should not cost four
+   * presses of the back button to escape.
+   */
+  function setOverdue(next: boolean) {
+    // Page lives in the store, so it has to be reset alongside.
+    setPage(1);
+
+    const query = new URLSearchParams(params);
+    if (next) query.set('overdue', 'true');
+    else query.delete('overdue');
+
+    const search = query.toString();
+    router.replace(search ? `${pathname}?${search}` : pathname, { scroll: false });
+  }
 
   // Typing should not fire a request per keystroke; the store drives the query key.
   const [draft, setDraft] = useState(search ?? '');
@@ -70,6 +95,25 @@ export function StudentFilterBar({ programmes }: { programmes: ProgrammeOption[]
             </option>
           ))}
         </Select>
+
+        {/* A toggle, not a fourth dropdown: it is the one question an admin asks this
+            screen repeatedly, and it deserves to be one click rather than two. */}
+        <label
+          className={cn(
+            'inline-flex h-9 cursor-pointer items-center gap-2 rounded-control border px-3 text-sm transition-control',
+            overdue
+              ? 'border-alert bg-alert/5 text-alert'
+              : 'border-rule bg-paper hover:border-ink/40',
+          )}
+        >
+          <input
+            type="checkbox"
+            checked={Boolean(overdue)}
+            onChange={(event) => setOverdue(event.target.checked)}
+            className="size-3.5 accent-current"
+          />
+          Overdue only
+        </label>
       </div>
 
       {hasFilters && (
@@ -92,11 +136,15 @@ export function StudentFilterBar({ programmes }: { programmes: ProgrammeOption[]
           {status && (
             <FilterChip label={statusLabel(status)} onRemove={() => setStatus(undefined)} />
           )}
+          {overdue && <FilterChip label="Overdue" onRemove={() => setOverdue(false)} />}
           <button
             type="button"
             onClick={() => {
               setDraft('');
               clear();
+              // The arrears filter lives in the URL, so clearing the store alone would
+              // leave it on and the button would look broken.
+              if (overdue) setOverdue(false);
             }}
             className="text-xs text-muted underline underline-offset-2 transition-control hover:text-ink"
           >

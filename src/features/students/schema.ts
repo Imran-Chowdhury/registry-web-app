@@ -107,9 +107,48 @@ export const studentFiltersSchema = z.object({
   search: z.string().trim().max(120).optional(),
   programmeId: z.string().min(1).optional(),
   status: enrolmentStatusSchema.optional(),
+  /**
+   * Arrears only. Unlike the others this is not a column — overdue is
+   * `outstanding > 0 && dueDate < now`, computed from the fee and its payments — so the
+   * service resolves it rather than the query. See `studentRepo.findOverdueCandidates`.
+   *
+   * A union rather than `z.coerce.boolean()`: coercion makes the string `"false"` true,
+   * which would turn a link that says "not overdue" into one that says the opposite.
+   */
+  overdue: z.union([z.boolean(), z.stringbool()]).optional(),
 });
 
 export type StudentFilters = z.infer<typeof studentFiltersSchema>;
+
+/**
+ * A screenful. CLAUDE.md §13 puts the pagination threshold at 25 rows, so that is also
+ * the page size — a registry admin scans a page rather than reading it.
+ */
+export const STUDENT_PAGE_SIZE = 25;
+
+/**
+ * Filters plus where in the results we are.
+ *
+ * Page is not a filter — it is a position — but it travels with the filters through the
+ * URL, the query key, and the service, so one schema parses the lot. `pageSize` is
+ * capped: it arrives from a query string, and an uncapped one is an invitation to ask
+ * for the whole table in a single request.
+ */
+export const studentQuerySchema = studentFiltersSchema.extend({
+  page: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(100).default(STUDENT_PAGE_SIZE),
+});
+
+export type StudentQuery = z.infer<typeof studentQuerySchema>;
+
+/**
+ * The query the list starts on.
+ *
+ * Both the server prefetch and the client store must produce this exact object, or the
+ * two query keys differ, the hydrated page is discarded, and the list refetches on
+ * mount. One constant, so they cannot drift.
+ */
+export const DEFAULT_STUDENT_QUERY: StudentQuery = studentQuerySchema.parse({});
 
 function yearsSince(date: Date): number {
   const now = new Date();

@@ -7,16 +7,20 @@
  */
 
 export {
+  DEFAULT_STUDENT_QUERY,
   ENROLMENT_STATUSES,
+  STUDENT_PAGE_SIZE,
   changeStatusSchema,
   createStudentSchema,
   enrolmentStatusSchema,
   studentFiltersSchema,
+  studentQuerySchema,
   updateStudentSchema,
   type ChangeStatusInput,
   type CreateStudentInput,
   type EnrolmentStatusValue,
   type StudentFilters,
+  type StudentQuery,
   type UpdateStudentInput,
 } from './schema';
 
@@ -40,7 +44,7 @@ export {
 export {
   useHasActiveFilters,
   useStudentFilterStore,
-  useStudentFilters,
+  useStudentQuery,
 } from './store';
 
 export { StatusBadge } from './components/status-badge';
